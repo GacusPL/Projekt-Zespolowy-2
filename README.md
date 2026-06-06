@@ -169,6 +169,6 @@ Aplikacja będzie dostępna pod adresem: [http://localhost:3000](http://localhos
 
 ## 👥 Autorzy
 
-Kamil Przychodzeń 21297
-Kacper Szponar 21306
-Kaja Thiel 21310
+- Kamil Przychodzeń 21297
+- Kacper Szponar 21306
+- Kaja Thiel 21310
