@@ -1,0 +1,57 @@
+name: lekturai
+description: "LekturAI – inteligentny asystent nauki oparty o lokalny model LLM (Ollama) i system RAG."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # Dependency injection
+  get_it: ^7.7.0
+
+  # Functional error handling (Either<Failure, Success>)
+  dartz: ^0.10.1
+
+  # HTTP / streaming
+  http: ^1.2.2
+
+  # PDF parsing (required by professor)
+  syncfusion_flutter_pdf: ^26.2.14
+
+  # File picking
+  file_picker: ^8.1.2
+
+  # Local database
+  sqflite: ^2.3.3+1
+  sqflite_common_ffi: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.4
+
+  # Image handling
+  image: ^4.2.0
+
+  # UI helpers
+  flutter_markdown: ^0.7.3
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  fl_chart: ^0.69.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true

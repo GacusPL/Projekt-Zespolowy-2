@@ -1,0 +1,36 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+.fvm/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Generated / lock files
+pubspec.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Platformy (zachowujemy lib/ a generujemy resztę przez `flutter create .`)
+android/
+ios/
+linux/
+macos/
+windows/
+web/
+
+# Aplikacja
+*.db
+*.sqlite
+lekturai.db
