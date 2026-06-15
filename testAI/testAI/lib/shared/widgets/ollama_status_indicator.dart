@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/network/ollama_client.dart';
+import '../../core/settings/app_settings.dart';
 
 /// Mała plakietka w app-barze pokazująca status połączenia z lokalną Ollama.
 /// Polling co 10 sekund — wystarczająco często, by szybko zauważyć, że
@@ -19,13 +20,22 @@ class _OllamaStatusIndicatorState extends State<OllamaStatusIndicator> {
   bool? _reachable;
   Timer? _timer;
   late final OllamaClient _client;
+  late final AppSettings _settings;
 
   @override
   void initState() {
     super.initState();
     _client = sl<OllamaClient>();
+    _settings = sl<AppSettings>();
+    // Po zmianie adresu/modelu w ustawieniach od razu sprawdź połączenie.
+    _settings.addListener(_onSettingsChanged);
     _check();
     _timer = Timer.periodic(const Duration(seconds: 10), (_) => _check());
+  }
+
+  void _onSettingsChanged() {
+    setState(() => _reachable = null);
+    _check();
   }
 
   Future<void> _check() async {
@@ -35,6 +45,7 @@ class _OllamaStatusIndicatorState extends State<OllamaStatusIndicator> {
 
   @override
   void dispose() {
+    _settings.removeListener(_onSettingsChanged);
     _timer?.cancel();
     super.dispose();
   }

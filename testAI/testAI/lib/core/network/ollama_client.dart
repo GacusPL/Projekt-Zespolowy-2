@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
+import '../settings/app_settings.dart';
 
 /// Klient lokalnej instancji Ollama.
 ///
@@ -15,21 +15,32 @@ import '../errors/exceptions.dart';
 ///    dla zdjęć notatek (radzi sobie też z pismem odręcznym).
 class OllamaClient {
   final http.Client _client;
-  final String baseUrl;
+  final AppSettings _settings;
 
   OllamaClient({
+    required AppSettings settings,
     http.Client? client,
-    this.baseUrl = AppConstants.defaultOllamaBaseUrl,
-  }) : _client = client ?? http.Client();
+  })  : _settings = settings,
+        _client = client ?? http.Client();
+
+  /// Aktualny adres serwera Ollama — czytany na żywo z [AppSettings], dzięki
+  /// czemu zmiana w ustawieniach działa natychmiast (ten sam singleton).
+  String get baseUrl => _settings.ollamaBaseUrl;
 
   // ------------------------------------------------------------------ ping
 
-  /// Sprawdza, czy lokalna Ollama jest osiągalna. Pomocne by w UI pokazać
-  /// czytelny komunikat zamiast wybuchu na pierwszym zapytaniu.
-  Future<bool> isReachable() async {
+  /// Sprawdza, czy Ollama jest osiągalna. Pomocne by w UI pokazać czytelny
+  /// komunikat zamiast wybuchu na pierwszym zapytaniu.
+  ///
+  /// [baseUrlOverride] pozwala przetestować jeszcze niezapisany adres
+  /// (np. z pola w ustawieniach, zanim użytkownik kliknie "Zapisz").
+  Future<bool> isReachable({String? baseUrlOverride}) async {
+    final url = baseUrlOverride != null
+        ? AppSettings.normalizeUrl(baseUrlOverride)
+        : baseUrl;
     try {
       final r = await _client
-          .get(Uri.parse('$baseUrl/api/tags'))
+          .get(Uri.parse('$url/api/tags'))
           .timeout(const Duration(seconds: 3));
       return r.statusCode == 200;
     } catch (_) {
@@ -45,7 +56,7 @@ class OllamaClient {
         Uri.parse('$baseUrl/api/embeddings'),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'model': AppConstants.embeddingModel,
+          'model': _settings.embeddingModel,
           'prompt': text,
         }),
       );
@@ -80,7 +91,7 @@ class OllamaClient {
         Uri.parse('$baseUrl/api/generate'),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'model': model ?? AppConstants.chatModel,
+          'model': model ?? _settings.chatModel,
           'prompt': prompt,
           if (system != null) 'system': system,
           'stream': false,
@@ -120,7 +131,7 @@ class OllamaClient {
     final request = http.Request('POST', Uri.parse('$baseUrl/api/generate'));
     request.headers['Content-Type'] = 'application/json';
     request.body = jsonEncode({
-      'model': model ?? AppConstants.chatModel,
+      'model': model ?? _settings.chatModel,
       'prompt': prompt,
       if (system != null) 'system': system,
       'stream': true,
@@ -177,7 +188,7 @@ class OllamaClient {
         Uri.parse('$baseUrl/api/generate'),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'model': AppConstants.visionModel,
+          'model': _settings.visionModel,
           'prompt': prompt,
           'images': [base64Encode(imageBytes)],
           'stream': false,

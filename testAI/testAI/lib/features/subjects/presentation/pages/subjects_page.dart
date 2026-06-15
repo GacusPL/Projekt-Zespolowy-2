@@ -6,6 +6,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/ollama_status_indicator.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 import '../../domain/entities/subject.dart';
 import '../bloc/subjects_bloc.dart';
 import '../widgets/create_subject_dialog.dart';
@@ -59,9 +60,17 @@ class _SubjectsView extends StatelessWidget {
             const Text('LekturAI'),
           ],
         ),
-        actions: const [
-          OllamaStatusIndicator(),
-          SizedBox(width: 16),
+        actions: [
+          const OllamaStatusIndicator(),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Ustawienia',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsPage()),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: BlocBuilder<SubjectsBloc, SubjectsState>(

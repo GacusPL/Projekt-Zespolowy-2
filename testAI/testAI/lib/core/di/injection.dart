@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/ollama_client.dart';
+import '../settings/app_settings.dart';
 import '../../shared/database/database_helper.dart';
 
 // Subjects
@@ -44,8 +46,15 @@ final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   // ==================================================== CORE / SHARED
+  // Ustawienia muszą być gotowe (wczytane z dysku) zanim powstanie OllamaClient,
+  // który z nich czyta adres serwera i nazwy modeli.
+  final prefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<AppSettings>(() => AppSettings(prefs)..load());
+
   sl.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper.instance);
-  sl.registerLazySingleton<OllamaClient>(() => OllamaClient());
+  sl.registerLazySingleton<OllamaClient>(
+    () => OllamaClient(settings: sl()),
+  );
 
   // ==================================================== SUBJECTS
   sl.registerLazySingleton<SubjectsLocalDataSource>(

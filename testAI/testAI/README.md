@@ -124,9 +124,42 @@ BLoC zależy tylko od UseCase'ów, nie zna repozytoriów. Repozytoria zwracają
 ### 2. Pobierz wymagane modele Ollama
 
 ```bash
-ollama pull llama3.1            # Główny model czatu (~4.7 GB)
+ollama pull llama3.1            # Główny model czatu (~4.9 GB)
 ollama pull nomic-embed-text    # Embeddingi 768D (~270 MB)
 ollama pull llava               # Model wizyjny do zdjęć notatek (~4.7 GB)
+```
+
+#### Dodatkowe modele do wyboru (opcjonalne)
+
+Modele można przełączać w aplikacji w **⚙ Ustawienia → Modele** (bez
+rekompilacji). Najpierw trzeba je jednak pobrać. Wszystkie poniższe mieszczą się
+w budżecie **~16 GB VRAM** (rozmiary przybliżone, warianty Q4):
+
+```bash
+# Modele czatu (RAG)
+ollama pull llama3.2            # 3B  — szybki, lekki (~2.0 GB)
+ollama pull gemma4:e2b         # Gemma 4 E2B (~7.2 GB)
+ollama pull gemma4:e4b         # Gemma 4 E4B (~9.6 GB)
+ollama pull gemma4:12b         # Gemma 4 12B (~7.6 GB)
+ollama pull gemma3             # 4B  (~3.3 GB)
+ollama pull gemma2             # 9B  (~5.4 GB)
+ollama pull mistral            # 7B  (~4.1 GB)
+ollama pull qwen2.5            # 7B  (~4.7 GB)
+ollama pull qwen2.5:14b        # 14B (~9.0 GB)
+ollama pull phi3               # 3.8B (~2.2 GB)
+
+# Gemma 4 26B (~18 GB) i 31B (~20 GB) nie mieszczą się w 16 GB VRAM — pominięte.
+
+# Modele embeddingów (uwaga: inna wymiarowość → wgraj dokumenty ponownie)
+ollama pull mxbai-embed-large  # 1024D (~670 MB)
+ollama pull bge-m3             # 1024D (~1.2 GB)
+ollama pull all-minilm         # 384D  — najlżejszy (~50 MB)
+
+# Modele wizyjne (OCR zdjęć notatek)
+ollama pull llava:13b          # 13B (~8.0 GB)
+ollama pull llama3.2-vision    # 11B (~7.9 GB)
+ollama pull bakllava           # 7B  (~4.7 GB)
+ollama pull moondream          # 1.8B — najlżejszy (~1.7 GB)
 ```
 
 ### 3. Upewnij się, że Ollama działa
@@ -228,13 +261,13 @@ nie ma żadnego serwera w chmurze.
 - Sprawdź czy zostały pobrane wymagane modele: `ollama list`
 
 **"Nieoczekiwany wymiar embeddingu"**
-- Aplikacja oczekuje 768D embeddingów z `nomic-embed-text`. Jeśli pobrałeś inny
-  model do embeddingów, edytuj `AppConstants.embeddingModel` i
-  `AppConstants.embeddingDimension`.
+- Aplikacja oczekuje 768D embeddingów z `nomic-embed-text`. Po zmianie modelu
+  embeddingów w **⚙ Ustawienia → Modele** na taki o innej wymiarowości wgraj
+  dokumenty ponownie (stare wektory są niekompatybilne).
 
 **"Model zwrócił niepoprawny JSON dla fiszek/quizu"**
-- Czasem mały model halucynuje formatowanie. Spróbuj jeszcze raz lub użyj
-  większego modelu (np. `llama3.1:70b` zamiast `llama3.1`).
+- Czasem mały model halucynuje formatowanie. Spróbuj jeszcze raz lub wybierz
+  mocniejszy model w **⚙ Ustawienia → Modele** (np. `qwen2.5:14b`).
 
 **Powolny upload PDF**
 - Czas zależy od liczby chunków × czas embeddingu (~50–200 ms/chunk na CPU).
