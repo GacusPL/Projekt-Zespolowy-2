@@ -16,6 +16,10 @@ import '../settings/app_settings.dart';
 class OllamaClient {
   final http.Client _client;
   final AppSettings _settings;
+  String? _lastError;
+
+  /// Ostatni zarejestrowany błąd podczas sprawdzania połączenia z Ollamą.
+  String? get lastError => _lastError;
 
   OllamaClient({
     required AppSettings settings,
@@ -39,11 +43,40 @@ class OllamaClient {
         ? AppSettings.normalizeUrl(baseUrlOverride)
         : baseUrl;
     try {
-      final r = await _client
-          .get(Uri.parse('$url/api/tags'))
-          .timeout(const Duration(seconds: 3));
-      return r.statusCode == 200;
-    } catch (_) {
+      final r = await _client.get(
+        Uri.parse('$url/api/tags'),
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      ).timeout(const Duration(seconds: 3));
+      
+      if (r.statusCode != 200) {
+        final bodyText = r.body.length > 100 ? '${r.body.substring(0, 100)}...' : r.body;
+        _lastError = 'HTTP status ${r.statusCode}: $bodyText';
+        print('[OllamaClient] Reachability check failed: $_lastError');
+        return false;
+      }
+      
+      // Jeśli ngrok zwraca HTML (np. błąd 104, 502), to nie jest to działająca Ollama
+      final contentType = r.headers['content-type'] ?? '';
+      if (contentType.contains('text/html')) {
+        final ngrokCode = r.headers['ngrok-error-code'];
+        final ngrokDesc = r.headers['ngrok-error-description'];
+        if (ngrokCode != null) {
+          _lastError = 'Błąd ngrok $ngrokCode: $ngrokDesc';
+        } else {
+          _lastError = 'Serwer zwrócił HTML zamiast JSON (prawdopodobnie błąd lub ostrzeżenie ngrok)';
+        }
+        print('[OllamaClient] Reachability check failed: $_lastError');
+        return false;
+      }
+      
+      _lastError = null;
+      return true;
+    } catch (e, stack) {
+      _lastError = 'Wyjątek: $e';
+      print('[OllamaClient] Reachability check failed: $_lastError\n$stack');
       return false;
     }
   }
@@ -54,7 +87,11 @@ class OllamaClient {
     try {
       final r = await _client.post(
         Uri.parse('$baseUrl/api/embeddings'),
-        headers: const {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode({
           'model': _settings.embeddingModel,
           'prompt': text,
@@ -69,9 +106,11 @@ class OllamaClient {
       final data = jsonDecode(r.body) as Map<String, dynamic>;
       final embedding = (data['embedding'] as List).cast<num>();
       return embedding.map((e) => e.toDouble()).toList();
-    } on OllamaException {
+    } on OllamaException catch (e, stack) {
+      print('[OllamaClient] generateEmbedding exception: $e\n$stack');
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
+      print('[OllamaClient] generateEmbedding exception: $e\n$stack');
       throw OllamaException('Nie udało się połączyć z Ollama: $e');
     }
   }
@@ -89,7 +128,11 @@ class OllamaClient {
     try {
       final r = await _client.post(
         Uri.parse('$baseUrl/api/generate'),
-        headers: const {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode({
           'model': model ?? _settings.chatModel,
           'prompt': prompt,
@@ -107,9 +150,11 @@ class OllamaClient {
       }
       final data = jsonDecode(r.body) as Map<String, dynamic>;
       return (data['response'] as String? ?? '').trim();
-    } on OllamaException {
+    } on OllamaException catch (e, stack) {
+      print('[OllamaClient] generateOnce exception: $e\n$stack');
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
+      print('[OllamaClient] generateOnce exception: $e\n$stack');
       throw OllamaException('Błąd generowania: $e');
     }
   }
@@ -129,7 +174,11 @@ class OllamaClient {
     double? temperature,
   }) async* {
     final request = http.Request('POST', Uri.parse('$baseUrl/api/generate'));
-    request.headers['Content-Type'] = 'application/json';
+    request.headers.addAll({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+    });
     request.body = jsonEncode({
       'model': model ?? _settings.chatModel,
       'prompt': prompt,
@@ -143,7 +192,8 @@ class OllamaClient {
     final http.StreamedResponse response;
     try {
       response = await _client.send(request);
-    } catch (e) {
+    } catch (e, stack) {
+      print('[OllamaClient] generateStream connection exception: $e\n$stack');
       throw OllamaException('Nie udało się połączyć z Ollama: $e');
     }
 
@@ -186,7 +236,11 @@ class OllamaClient {
     try {
       final r = await _client.post(
         Uri.parse('$baseUrl/api/generate'),
-        headers: const {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode({
           'model': _settings.visionModel,
           'prompt': prompt,
@@ -201,9 +255,11 @@ class OllamaClient {
       }
       final data = jsonDecode(r.body) as Map<String, dynamic>;
       return (data['response'] as String? ?? '').trim();
-    } on OllamaException {
+    } on OllamaException catch (e, stack) {
+      print('[OllamaClient] describeImage exception: $e\n$stack');
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
+      print('[OllamaClient] describeImage exception: $e\n$stack');
       throw OllamaException('Błąd analizy obrazu: $e');
     }
   }

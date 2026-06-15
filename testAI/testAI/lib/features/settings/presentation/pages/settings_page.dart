@@ -66,10 +66,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final ok = await _ollama.isReachable(baseUrlOverride: _effectiveUrl);
     if (!mounted) return;
     setState(() => _testing = false);
-    _showSnack(
-      ok ? 'Połączono z Ollama ✓' : 'Brak połączenia z Ollama',
-      isError: !ok,
-    );
+    if (ok) {
+      _showSnack('Połączono z Ollama ✓');
+    } else {
+      final err = _ollama.lastError ?? 'Nieznany błąd';
+      _showSnack('Brak połączenia z Ollama: $err', isError: true);
+    }
   }
 
   Future<void> _save() async {
