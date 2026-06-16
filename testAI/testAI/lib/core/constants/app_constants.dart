@@ -21,7 +21,9 @@ class AppConstants {
   /// Wymaga: `ollama pull llava`
   static const String visionModel = 'llava';
 
-  /// Wymiarowość embeddingu produkowanego przez `nomic-embed-text`.
+  /// Wymiarowość embeddingu domyślnego modelu (`nomic-embed-text`).
+  /// Uwaga: faktyczny oczekiwany wymiar zależy od wybranego modelu — patrz
+  /// [OllamaModels.embeddingDimensionFor]. Ta stała pełni rolę fallbacku.
   static const int embeddingDimension = 768;
 
   // --- RAG ----------------------------------------------------------------

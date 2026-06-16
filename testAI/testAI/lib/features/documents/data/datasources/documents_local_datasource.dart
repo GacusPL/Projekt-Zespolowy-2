@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/ollama_client.dart';
+import '../../../../core/settings/ollama_models.dart';
 import '../../../../core/utils/text_chunker.dart';
 import '../../../../core/utils/vector_math.dart';
 import '../../../../shared/database/database_helper.dart';
@@ -158,9 +159,15 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
       );
 
       final embedding = await _ollama.generateEmbedding(content);
-      if (embedding.length != AppConstants.embeddingDimension) {
+      // Wymiar oczekiwany zależy od wybranego modelu (np. nomic-embed-text=768,
+      // bge-m3=1024). Dla modeli spoza katalogu wymiar jest nieznany — wtedy
+      // akceptujemy to, co zwróci Ollama (brak twardej walidacji).
+      final expectedDim =
+          OllamaModels.embeddingDimensionFor(_ollama.embeddingModel);
+      if (expectedDim != null && embedding.length != expectedDim) {
         throw OllamaException(
-          'Nieoczekiwany wymiar embeddingu: ${embedding.length}',
+          'Nieoczekiwany wymiar embeddingu: ${embedding.length} '
+          '(model ${_ollama.embeddingModel} oczekuje $expectedDim).',
         );
       }
       batch.insert('chunks', {
@@ -236,6 +243,10 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
     for (final row in rows) {
       final blob = row['embedding'] as Uint8List;
       final emb = VectorMath.blobToVector(blob);
+      // Pomijamy chunki zapisane innym modelem embeddingów (inny wymiar) —
+      // cosine similarity wymaga zgodnych długości. Inaczej zmiana modelu bez
+      // ponownego wgrania dokumentów wywaliłaby wyszukiwanie.
+      if (emb.length != queryEmb.length) continue;
       final sim = VectorMath.cosineSimilarity(queryEmb, emb);
       if (sim < AppConstants.minSimilarityThreshold) continue;
       scored.add(_ScoredRow(row, sim));

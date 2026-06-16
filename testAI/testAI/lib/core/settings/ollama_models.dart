@@ -6,7 +6,11 @@ class OllamaModelOption {
   /// Przybliżony rozmiar / zajętość VRAM w GB (wariant kwantyzowany Q4).
   final double sizeGb;
 
-  const OllamaModelOption(this.name, this.sizeGb);
+  /// Wymiarowość produkowanego wektora embeddingu (np. 768, 1024, 384).
+  /// `null` dla modeli czatu / wizji, które nie generują embeddingów.
+  final int? dimension;
+
+  const OllamaModelOption(this.name, this.sizeGb, {this.dimension});
 
   /// Etykieta pokazywana w UI, np. `llama3.1 (4.9 GB)`.
   String get label => '$name (${sizeGb.toStringAsFixed(1)} GB)';
@@ -50,11 +54,24 @@ class OllamaModels {
   /// Uwaga: różne modele dają wektory o różnej wymiarowości. Po zmianie modelu
   /// embeddingów wcześniej zapisane fragmenty trzeba wgrać ponownie.
   static const List<OllamaModelOption> embedding = [
-    OllamaModelOption('nomic-embed-text', 0.3), // 768D — domyślny
-    OllamaModelOption('mxbai-embed-large', 0.7), // 1024D
-    OllamaModelOption('bge-m3', 1.2), // 1024D
-    OllamaModelOption('all-minilm', 0.05), // 384D — najlżejszy
+    OllamaModelOption('nomic-embed-text', 0.3, dimension: 768), // domyślny
+    OllamaModelOption('mxbai-embed-large', 0.7, dimension: 1024),
+    OllamaModelOption('bge-m3', 1.2, dimension: 1024),
+    OllamaModelOption('all-minilm', 0.05, dimension: 384), // najlżejszy
   ];
+
+  /// Zwraca znaną wymiarowość wektora dla danego modelu embeddingów lub `null`,
+  /// gdy model nie figuruje w katalogu (model spoza listy — wymiar nieznany,
+  /// nie da się go zweryfikować z góry).
+  ///
+  /// Dopasowanie ignoruje tag wersji (np. `bge-m3:latest` → `bge-m3`).
+  static int? embeddingDimensionFor(String model) {
+    final name = model.split(':').first.trim();
+    for (final opt in embedding) {
+      if (opt.name == name) return opt.dimension;
+    }
+    return null;
+  }
 
   /// Modele wizyjne (ekstrakcja tekstu ze zdjęć notatek — „OCR z AI").
   static const List<OllamaModelOption> vision = [

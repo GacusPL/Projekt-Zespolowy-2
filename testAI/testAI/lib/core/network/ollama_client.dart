@@ -31,6 +31,9 @@ class OllamaClient {
   /// czemu zmiana w ustawieniach działa natychmiast (ten sam singleton).
   String get baseUrl => _settings.ollamaBaseUrl;
 
+  /// Aktualnie wybrany model embeddingów (czytany na żywo z [AppSettings]).
+  String get embeddingModel => _settings.embeddingModel;
+
   // ------------------------------------------------------------------ ping
 
   /// Sprawdza, czy Ollama jest osiągalna. Pomocne by w UI pokazać czytelny
