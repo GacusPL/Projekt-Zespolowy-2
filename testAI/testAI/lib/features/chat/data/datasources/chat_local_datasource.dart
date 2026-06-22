@@ -2,7 +2,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../shared/database/database_helper.dart';
-import '../../domain/entities/conversation.dart';
 import '../models/chat_models.dart';
 
 abstract class ChatLocalDataSource {

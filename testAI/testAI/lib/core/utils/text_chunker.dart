@@ -19,11 +19,11 @@ class TextChunker {
     final words = normalized.split(' ');
     if (words.length <= chunkSize) return [normalized];
 
-    final step = math_max(1, chunkSize - overlap);
+    final step = _max(1, chunkSize - overlap);
     final chunks = <String>[];
 
     for (int i = 0; i < words.length; i += step) {
-      final end = math_min(i + chunkSize, words.length);
+      final end = _min(i + chunkSize, words.length);
       chunks.add(words.sublist(i, end).join(' '));
       if (end == words.length) break;
     }
@@ -31,6 +31,6 @@ class TextChunker {
   }
 
   // Małe lokalne pomocniki (dart:math import w tym samym pliku byłby tu de trop).
-  static int math_max(int a, int b) => a > b ? a : b;
-  static int math_min(int a, int b) => a < b ? a : b;
+  static int _max(int a, int b) => a > b ? a : b;
+  static int _min(int a, int b) => a < b ? a : b;
 }

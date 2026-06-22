@@ -229,7 +229,7 @@ class _MessagesAreaState extends State<_MessagesArea> {
       children: [
         Expanded(
           child: state.messages.isEmpty
-              ? EmptyState(
+              ? const EmptyState(
                   icon: Icons.auto_awesome,
                   title: 'Zadaj pytanie',
                   description:

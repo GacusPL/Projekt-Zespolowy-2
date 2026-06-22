@@ -215,7 +215,7 @@ class _OptionTile extends StatelessWidget {
       }
     } else if (selected) {
       borderColor = scheme.primary;
-      bg = scheme.primary.withOpacity(0.08);
+      bg = scheme.primary.withValues(alpha: 0.08);
     }
 
     return Padding(
@@ -286,9 +286,9 @@ class _ExplanationBox extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.tertiaryContainer.withOpacity(0.5),
+        color: scheme.tertiaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.tertiary.withOpacity(0.3)),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

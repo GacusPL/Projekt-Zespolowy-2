@@ -25,7 +25,7 @@ class SubjectModel extends Subject {
         'id': id,
         'name': name,
         'description': description,
-        'color_value': color.value,
+        'color_value': color.toARGB32(),
         'created_at': createdAt.millisecondsSinceEpoch,
       };
 }

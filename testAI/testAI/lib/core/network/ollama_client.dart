@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../errors/exceptions.dart';
@@ -57,7 +58,7 @@ class OllamaClient {
       if (r.statusCode != 200) {
         final bodyText = r.body.length > 100 ? '${r.body.substring(0, 100)}...' : r.body;
         _lastError = 'HTTP status ${r.statusCode}: $bodyText';
-        print('[OllamaClient] Reachability check failed: $_lastError');
+        debugPrint('[OllamaClient] Reachability check failed: $_lastError');
         return false;
       }
       
@@ -71,7 +72,7 @@ class OllamaClient {
         } else {
           _lastError = 'Serwer zwrócił HTML zamiast JSON (prawdopodobnie błąd lub ostrzeżenie ngrok)';
         }
-        print('[OllamaClient] Reachability check failed: $_lastError');
+        debugPrint('[OllamaClient] Reachability check failed: $_lastError');
         return false;
       }
       
@@ -79,7 +80,7 @@ class OllamaClient {
       return true;
     } catch (e, stack) {
       _lastError = 'Wyjątek: $e';
-      print('[OllamaClient] Reachability check failed: $_lastError\n$stack');
+      debugPrint('[OllamaClient] Reachability check failed: $_lastError\n$stack');
       return false;
     }
   }
@@ -110,10 +111,10 @@ class OllamaClient {
       final embedding = (data['embedding'] as List).cast<num>();
       return embedding.map((e) => e.toDouble()).toList();
     } on OllamaException catch (e, stack) {
-      print('[OllamaClient] generateEmbedding exception: $e\n$stack');
+      debugPrint('[OllamaClient] generateEmbedding exception: $e\n$stack');
       rethrow;
     } catch (e, stack) {
-      print('[OllamaClient] generateEmbedding exception: $e\n$stack');
+      debugPrint('[OllamaClient] generateEmbedding exception: $e\n$stack');
       throw OllamaException('Nie udało się połączyć z Ollama: $e');
     }
   }
@@ -154,10 +155,10 @@ class OllamaClient {
       final data = jsonDecode(r.body) as Map<String, dynamic>;
       return (data['response'] as String? ?? '').trim();
     } on OllamaException catch (e, stack) {
-      print('[OllamaClient] generateOnce exception: $e\n$stack');
+      debugPrint('[OllamaClient] generateOnce exception: $e\n$stack');
       rethrow;
     } catch (e, stack) {
-      print('[OllamaClient] generateOnce exception: $e\n$stack');
+      debugPrint('[OllamaClient] generateOnce exception: $e\n$stack');
       throw OllamaException('Błąd generowania: $e');
     }
   }
@@ -196,7 +197,7 @@ class OllamaClient {
     try {
       response = await _client.send(request);
     } catch (e, stack) {
-      print('[OllamaClient] generateStream connection exception: $e\n$stack');
+      debugPrint('[OllamaClient] generateStream connection exception: $e\n$stack');
       throw OllamaException('Nie udało się połączyć z Ollama: $e');
     }
 
@@ -259,10 +260,10 @@ class OllamaClient {
       final data = jsonDecode(r.body) as Map<String, dynamic>;
       return (data['response'] as String? ?? '').trim();
     } on OllamaException catch (e, stack) {
-      print('[OllamaClient] describeImage exception: $e\n$stack');
+      debugPrint('[OllamaClient] describeImage exception: $e\n$stack');
       rethrow;
     } catch (e, stack) {
-      print('[OllamaClient] describeImage exception: $e\n$stack');
+      debugPrint('[OllamaClient] describeImage exception: $e\n$stack');
       throw OllamaException('Błąd analizy obrazu: $e');
     }
   }

@@ -78,10 +78,10 @@ class MessageBubble extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color:
-                                      scheme.primary.withOpacity(0.08),
+                                      scheme.primary.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: scheme.primary.withOpacity(0.3),
+                                    color: scheme.primary.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Text(
@@ -140,7 +140,7 @@ class MessageBubble extends StatelessWidget {
         code: TextStyle(
           color: fg,
           backgroundColor:
-              Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
           fontFamily: 'monospace',
           fontSize: 13,
         ),

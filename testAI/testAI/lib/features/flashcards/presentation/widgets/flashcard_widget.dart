@@ -114,7 +114,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: base.withOpacity(0.25),
+            color: base.withValues(alpha: 0.25),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -130,7 +130,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -167,7 +167,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
               Icon(
                 Icons.touch_app_outlined,
                 size: 14,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 6),
               Text(
@@ -175,7 +175,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                     ? 'Stuknij, by zobaczyć odpowiedź'
                     : 'Stuknij, by zobaczyć pytanie',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),

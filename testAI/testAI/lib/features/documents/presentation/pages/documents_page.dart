@@ -164,10 +164,10 @@ class _UploadCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: scheme.primaryContainer.withOpacity(0.3),
+          color: scheme.primaryContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: scheme.primary.withOpacity(0.4),
+            color: scheme.primary.withValues(alpha: 0.4),
             style: BorderStyle.solid,
             width: 1.5,
           ),
@@ -240,7 +240,7 @@ class _DocumentTile extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: _color(context).withOpacity(0.12),
+            color: _color(context).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(_icon, color: _color(context)),
@@ -257,7 +257,7 @@ class _DocumentTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _color(context).withOpacity(0.12),
+                  color: _color(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(

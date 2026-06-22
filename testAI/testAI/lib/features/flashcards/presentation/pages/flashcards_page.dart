@@ -207,7 +207,7 @@ class _SummaryBar extends StatelessWidget {
                     due == 0 ? 'Nic do nauki' : 'Ucz się ($due)',
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.black.withOpacity(0.25),
+                    backgroundColor: Colors.black.withValues(alpha: 0.25),
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(44),
                   ),
@@ -237,7 +237,7 @@ class _StatChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(emphasised ? 0.25 : 0.12),
+          color: Colors.white.withValues(alpha: emphasised ? 0.25 : 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -254,7 +254,7 @@ class _StatChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.85),
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
@@ -292,7 +292,7 @@ class _FlashcardListTile extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade400.withOpacity(0.15),
+                    color: Colors.orange.shade400.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(

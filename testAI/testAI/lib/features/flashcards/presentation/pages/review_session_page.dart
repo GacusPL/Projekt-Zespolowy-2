@@ -171,7 +171,7 @@ class _GradeButtons extends StatelessWidget {
                       Text(
                         subtitles[g]!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 10,
                         ),
                       ),
@@ -210,7 +210,7 @@ class _SessionSummary extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: scheme.primary.withOpacity(0.1),
+                color: scheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

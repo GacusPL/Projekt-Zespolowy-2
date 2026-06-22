@@ -115,7 +115,7 @@ class _ConvTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Material(
         color: active
-            ? scheme.primary.withOpacity(0.1)
+            ? scheme.primary.withValues(alpha: 0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(

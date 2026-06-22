@@ -144,9 +144,9 @@ class _QuizScoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (attempts.isEmpty) {
-      return Card(
+      return const Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: EmptyState(
             icon: Icons.show_chart,
             title: 'Brak rozwiązanych quizów',
@@ -216,7 +216,7 @@ class _QuizScoreCard extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: 25,
           getDrawingHorizontalLine: (_) => FlLine(
-            color: scheme.outlineVariant.withOpacity(0.5),
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
             strokeWidth: 1,
           ),
         ),
@@ -285,7 +285,7 @@ class _QuizScoreCard extends StatelessWidget {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: scheme.primary.withOpacity(0.15),
+              color: scheme.primary.withValues(alpha: 0.15),
             ),
           ),
         ],
@@ -302,9 +302,9 @@ class _FlashcardStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (cards.isEmpty) {
-      return Card(
+      return const Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: EmptyState(
             icon: Icons.style_outlined,
             title: 'Brak fiszek',
@@ -409,9 +409,9 @@ class _StatBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

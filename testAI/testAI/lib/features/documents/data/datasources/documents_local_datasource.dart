@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:lekturai/core/errors/exceptions.dart' hide DatabaseException;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';

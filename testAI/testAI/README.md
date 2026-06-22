@@ -87,6 +87,7 @@ lib/
 │   ├── di/                   # GetIt setup
 │   ├── errors/               # Failure (domain) + Exception (data)
 │   ├── network/              # OllamaClient
+│   ├── settings/             # AppSettings + katalog modeli (OllamaModels)
 │   ├── theme/
 │   └── utils/                # vector_math, text_chunker, json_extractor
 │
@@ -100,6 +101,7 @@ lib/
     ├── chat/                 # RAG ze streamingiem
     ├── flashcards/           # SM-2 spaced repetition
     ├── quiz/                 # Quizy ABCD
+    ├── settings/             # Konfiguracja Ollama (URL, modele)
     └── statistics/           # Wykresy postępów
         ├── domain/           # entities, repositories (interfejsy), usecases
         ├── data/             # models, datasources, repositories (impl)
@@ -224,13 +226,13 @@ flutter run -d <device-id> # Android (zobacz `flutter devices`)
 
 ## 🧪 Algorytm SM-2 — implementacja
 
-Klasyczny algorytm SuperMemo-2 (Piotr Woźniak, 1985). W skrócie:
+Klasyczny algorytm SuperMemo-2 (Piotr Woźniak, 1990). W skrócie:
 
 ```
 q = 0..5 (ocena studenta: 0 = nie pamiętam, 5 = łatwo)
 
 Jeśli q < 3:
-    interval = 1 dzień, repetitions = 0
+    interval = 0, repetitions = 0   (fiszka wraca do kolejki w tej samej sesji)
 Wpp:
     repetitions += 1
     if repetitions == 1: interval = 1
@@ -239,7 +241,7 @@ Wpp:
 
     EF = max(1.3, EF + (0.1 - (5-q)*(0.08 + (5-q)*0.02)))
 
-dueDate = now + interval dni
+dueDate = q < 3 ? now + 10 min : now + interval dni
 ```
 
 Implementacja w `lib/features/flashcards/domain/usecases/sm2_algorithm.dart`.
