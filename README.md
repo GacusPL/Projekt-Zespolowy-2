@@ -177,6 +177,32 @@ curl http://localhost:11434/api/tags
 W aplikacji w prawym górnym rogu jest plakietka pokazująca status połączenia
 (zielona "Ollama online" = wszystko gra).
 
+### Alternatywa: Ollama w chmurze (Google Colab + GPU)
+
+Nie masz mocnego GPU lokalnie? W repozytorium jest notatnik
+**[`Ollama_Colab.ipynb`](Ollama_Colab.ipynb)**, który w kilka minut uruchamia
+serwer Ollama na darmowej maszynie z GPU w Google Colab i wystawia go publicznym
+adresem URL przez tunel — wystarczy wkleić ten adres w aplikacji w
+**⚙ Ustawienia → Serwer Ollama (zewnętrzny)**.
+
+Co robi notatnik:
+
+1. Instaluje Ollama i uruchamia serwer z `OLLAMA_HOST=0.0.0.0`.
+2. Pobiera modele (`llama3.1`, `nomic-embed-text`, `bge-m3` + opcjonalne).
+3. Tworzy tunel i drukuje publiczny link `https://…` do portu `11434`:
+   - **ngrok** — wymaga darmowego konta i wklejenia własnego authtokenu z
+     [ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken);
+   - **Cloudflare Tunnel (trycloudflare)** — bez rejestracji, omija blokady
+     zapór sieciowych (np. FortiGuard/Fortinet).
+4. Dodatkowo: monitor stanu na żywo (Ollama/ngrok/Cloudflare) i komórki do
+   testowania połączenia oraz awaryjnego restartu serwera.
+
+> ⚠️ **Bezpieczeństwo:** wstaw **własny** authtoken ngrok. Nie commituj swojego
+> tokenu do repozytorium — każdy, kto go zobaczy, może użyć Twojego konta.
+
+> 💡 Sesje Colab są ulotne — po zamknięciu środowiska adres URL przestaje
+> działać i przy kolejnym uruchomieniu trzeba zaktualizować go w Ustawieniach.
+
 ### 4. Wygeneruj pliki platformowe i uruchom
 
 W katalogu projektu:
