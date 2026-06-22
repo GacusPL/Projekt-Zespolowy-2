@@ -1,4 +1,4 @@
-# 📚 LekturAI
+# 📚 LekturAI - Projekt Zespołowy 2
 
 > **Inteligentny asystent nauki oparty o lokalny LLM (Ollama).**
 > Wgrywasz materiały (PDF/zdjęcia notatek), a aplikacja pozwala Ci czatować z ich
