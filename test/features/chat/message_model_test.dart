@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:LekturAI/features/chat/data/models/chat_models.dart';
-import 'package:LekturAI/features/chat/domain/entities/conversation.dart';
+import 'package:lekturai/features/chat/data/models/chat_models.dart';
+import 'package:lekturai/features/chat/domain/entities/conversation.dart';
 
 void main() {
   group('MessageModel — serializacja źródeł', () {

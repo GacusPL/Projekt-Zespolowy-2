@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:LekturAI/core/utils/column_orderer.dart';
+import 'package:lekturai/core/utils/column_orderer.dart';
 
 TextBlock block(double left, double top, double width, String text,
         {double height = 12}) =>

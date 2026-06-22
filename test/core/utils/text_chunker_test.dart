@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:LekturAI/core/utils/text_chunker.dart';
+import 'package:lekturai/core/utils/text_chunker.dart';
 
 void main() {
   group('TextChunker.chunk', () {
