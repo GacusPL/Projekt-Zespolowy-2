@@ -1,3 +1,4 @@
+import 'package:sqflite/sqflite.dart' show ConflictAlgorithm;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/exceptions.dart';
@@ -107,7 +108,13 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
   Future<MessageModel> insertMessage(MessageModel message) async {
     try {
       final db = await _db.database;
-      await db.insert('messages', message.toMap());
+      // replace — zapis może się powtórzyć (np. częściowa odpowiedź zapisana
+      // przy zatrzymaniu/wyjściu, a potem zaktualizowana). Idempotentnie po id.
+      await db.insert(
+        'messages',
+        message.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       await touchConversation(message.conversationId);
       return message;
     } catch (e) {

@@ -369,6 +369,7 @@ class _CountPickerDialog extends StatelessWidget {
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
+            runSpacing: 10,
             children: options
                 .map((o) => FilledButton.tonal(
                       onPressed: () => Navigator.of(context).pop(o),

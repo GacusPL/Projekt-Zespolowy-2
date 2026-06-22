@@ -308,9 +308,11 @@ class _UploadProgress extends StatelessWidget {
     return Material(
       elevation: 8,
       color: scheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
-        child: Column(
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -339,6 +341,7 @@ class _UploadProgress extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

@@ -148,8 +148,11 @@ class DocumentsBloc extends Bloc<DocumentsEvent, DocumentsState> {
   }
 
   void _onProgress(_DocumentsUploadProgress e, Emitter emit) {
+    // Zdarzenia postępu i zakończenie uploadu są obsługiwane współbieżnie —
+    // ostatni callback ('Gotowe!') może dotrzeć już po wyczyszczeniu stanu.
+    // Bez tego guardu „ożywiłby" pasek na stałe (100%, nie znika).
+    if (!state.uploading) return;
     emit(state.copyWith(
-      uploading: true,
       uploadProgress: e.progress,
       uploadStage: e.stage,
     ));

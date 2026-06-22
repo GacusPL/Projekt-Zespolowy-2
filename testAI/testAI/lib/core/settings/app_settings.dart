@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_constants.dart';
@@ -29,6 +29,7 @@ class AppSettings extends ChangeNotifier {
   static const String _kChatModel = 'ollama_chat_model';
   static const String _kEmbeddingModel = 'ollama_embedding_model';
   static const String _kVisionModel = 'ollama_vision_model';
+  static const String _kThemeMode = 'theme_mode';
 
   final SharedPreferences _prefs;
 
@@ -38,12 +39,16 @@ class AppSettings extends ChangeNotifier {
   String _chatModel = AppConstants.chatModel;
   String _embeddingModel = AppConstants.embeddingModel;
   String _visionModel = AppConstants.visionModel;
+  ThemeMode _themeMode = ThemeMode.system;
 
   /// Adres bazowy Ollama bez końcowego ukośnika (np. `http://localhost:11434`).
   String get ollamaBaseUrl => _baseUrl;
   String get chatModel => _chatModel;
   String get embeddingModel => _embeddingModel;
   String get visionModel => _visionModel;
+
+  /// Wybrany tryb motywu (jasny / ciemny / zgodny z systemem).
+  ThemeMode get themeMode => _themeMode;
 
   /// Czy aktualny adres wskazuje na lokalną instancję (domyślny localhost).
   OllamaConnectionMode get connectionMode =>
@@ -59,6 +64,7 @@ class AppSettings extends ChangeNotifier {
     _embeddingModel =
         _prefs.getString(_kEmbeddingModel) ?? AppConstants.embeddingModel;
     _visionModel = _prefs.getString(_kVisionModel) ?? AppConstants.visionModel;
+    _themeMode = _themeModeFromString(_prefs.getString(_kThemeMode));
   }
 
   /// Zapisuje podane wartości (te przekazane jako `null` pozostają bez zmian),
@@ -68,10 +74,15 @@ class AppSettings extends ChangeNotifier {
     String? chatModel,
     String? embeddingModel,
     String? visionModel,
+    ThemeMode? themeMode,
   }) async {
     if (baseUrl != null) {
       _baseUrl = normalizeUrl(baseUrl);
       await _prefs.setString(_kBaseUrl, _baseUrl);
+    }
+    if (themeMode != null) {
+      _themeMode = themeMode;
+      await _prefs.setString(_kThemeMode, _themeModeToString(themeMode));
     }
     if (chatModel != null) {
       _chatModel = chatModel.trim();
@@ -94,7 +105,30 @@ class AppSettings extends ChangeNotifier {
         chatModel: AppConstants.chatModel,
         embeddingModel: AppConstants.embeddingModel,
         visionModel: AppConstants.visionModel,
+        themeMode: ThemeMode.system,
       );
+
+  static ThemeMode _themeModeFromString(String? value) {
+    switch (value) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  static String _themeModeToString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.system:
+        return 'system';
+    }
+  }
 
   /// Przycina białe znaki i usuwa końcowe ukośniki, by uniknąć podwójnych `//`
   /// przy sklejaniu ścieżek API (`$baseUrl/api/...`).

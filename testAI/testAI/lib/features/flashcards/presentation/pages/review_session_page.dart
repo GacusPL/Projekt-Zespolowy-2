@@ -148,7 +148,7 @@ class _GradeButtons extends StatelessWidget {
       children: ReviewGrade.values.map((g) {
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 3),
             child: Material(
               color: colors[g],
               borderRadius: BorderRadius.circular(12),
@@ -156,20 +156,30 @@ class _GradeButtons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 onTap: () => onGrade(g),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                   child: Column(
                     children: [
-                      Text(
-                        g.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                      // FittedBox — na wąskim ekranie etykieta skaluje się
+                      // zamiast zawijać/wychodzić poza przycisk.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          g.label,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitles[g]!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 10,

@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 
 class ChatInput extends StatefulWidget {
   final void Function(String) onSend;
+  final VoidCallback? onStop;
   final bool enabled;
   final bool streaming;
 
   const ChatInput({
     super.key,
     required this.onSend,
+    this.onStop,
     this.enabled = true,
     this.streaming = false,
   });
@@ -125,31 +127,28 @@ class _ChatInputState extends State<ChatInput> {
             ),
             const SizedBox(width: 8),
             Material(
-              color: _canSend && enabled
+              color: widget.streaming
                   ? scheme.primary
-                  : scheme.surfaceContainerHigh,
+                  : (_canSend && enabled
+                      ? scheme.primary
+                      : scheme.surfaceContainerHigh),
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
-                onTap: (_canSend && enabled) ? _submit : null,
+                onTap: widget.streaming
+                    ? widget.onStop
+                    : ((_canSend && enabled) ? _submit : null),
                 child: Container(
                   padding: const EdgeInsets.all(12),
-                  child: widget.streaming
-                      ? SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.4,
-                            valueColor: AlwaysStoppedAnimation(
-                                scheme.onSurfaceVariant),
-                          ),
-                        )
-                      : Icon(
-                          Icons.send_rounded,
-                          color: _canSend && enabled
-                              ? scheme.onPrimary
-                              : scheme.onSurfaceVariant,
-                        ),
+                  child: Icon(
+                    // W trakcie generacji przycisk pełni rolę zatrzymania.
+                    widget.streaming ? Icons.stop_rounded : Icons.send_rounded,
+                    color: widget.streaming
+                        ? scheme.onPrimary
+                        : (_canSend && enabled
+                            ? scheme.onPrimary
+                            : scheme.onSurfaceVariant),
+                  ),
                 ),
               ),
             ),

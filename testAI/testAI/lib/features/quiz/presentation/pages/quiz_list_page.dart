@@ -279,6 +279,7 @@ class _GenerateQuizDialogState extends State<_GenerateQuizDialog> {
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [5, 10, 15, 20].map((n) {
                 final selected = n == _count;
                 return ChoiceChip(

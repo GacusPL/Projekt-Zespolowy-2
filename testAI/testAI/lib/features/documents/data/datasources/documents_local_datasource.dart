@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -109,7 +109,7 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
     final String text;
     switch (type) {
       case DocumentType.pdf:
-        text = _pdf.extract(bytes);
+        text = await _pdf.extract(bytes);
         break;
       case DocumentType.image:
         // Multimodalny "OCR" przez Ollama vision (llava). Działa też na
@@ -237,30 +237,51 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
     );
     if (rows.isEmpty) return [];
 
-    // 3. Cosine similarity dla każdego chunku
-    final scored = <_ScoredRow>[];
-    for (final row in rows) {
-      final blob = row['embedding'] as Uint8List;
-      final emb = VectorMath.blobToVector(blob);
-      // Pomijamy chunki zapisane innym modelem embeddingów (inny wymiar) —
-      // cosine similarity wymaga zgodnych długości. Inaczej zmiana modelu bez
-      // ponownego wgrania dokumentów wywaliłaby wyszukiwanie.
-      if (emb.length != queryEmb.length) continue;
-      final sim = VectorMath.cosineSimilarity(queryEmb, emb);
-      if (sim < AppConstants.minSimilarityThreshold) continue;
-      scored.add(_ScoredRow(row, sim));
-    }
+    // 3. Cosine similarity liczone poza głównym isolate (compute), żeby przy
+    //    większej liczbie chunków nie blokować UI. Pomijamy chunki zapisane
+    //    innym modelem (inny wymiar) — porównanie wymaga zgodnych długości.
+    final blobs = rows.map((r) => r['embedding'] as Uint8List).toList();
+    final scored = await compute(
+      _scoreEmbeddings,
+      _ScoreArgs(queryEmb, blobs, AppConstants.minSimilarityThreshold),
+    );
 
-    // 4. Sortuj malejąco i weź topK
-    scored.sort((a, b) => b.score.compareTo(a.score));
-    final top = scored.take(topK);
-
-    return top.map((s) => DocumentChunkModel.fromMap(s.row, similarity: s.score)).toList();
+    // 4. Weź topK (lista jest już posortowana malejąco) i zmapuj na model.
+    return scored
+        .take(topK)
+        .map((s) =>
+            DocumentChunkModel.fromMap(rows[s.index], similarity: s.score))
+        .toList();
   }
 }
 
-class _ScoredRow {
-  final Map<String, dynamic> row;
+/// Argumenty scoringu przekazywane do isolate (`compute`). Zawierają tylko typy
+/// sendable (List<double>, List<Uint8List>, double).
+class _ScoreArgs {
+  final List<double> query;
+  final List<Uint8List> blobs;
+  final double threshold;
+  const _ScoreArgs(this.query, this.blobs, this.threshold);
+}
+
+class _Scored {
+  final int index;
   final double score;
-  _ScoredRow(this.row, this.score);
+  const _Scored(this.index, this.score);
+}
+
+/// Funkcja uruchamiana w osobnym isolate: deserializuje embeddingi i liczy
+/// cosine similarity względem zapytania, zwracając posortowaną malejąco listę
+/// trafień powyżej progu (z indeksami do oryginalnych wierszy).
+List<_Scored> _scoreEmbeddings(_ScoreArgs args) {
+  final out = <_Scored>[];
+  for (var i = 0; i < args.blobs.length; i++) {
+    final emb = VectorMath.blobToVector(args.blobs[i]);
+    if (emb.length != args.query.length) continue;
+    final sim = VectorMath.cosineSimilarity(args.query, emb);
+    if (sim < args.threshold) continue;
+    out.add(_Scored(i, sim));
+  }
+  out.sort((a, b) => b.score.compareTo(a.score));
+  return out;
 }

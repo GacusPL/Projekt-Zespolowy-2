@@ -52,6 +52,11 @@ class ChatMessageSent extends ChatEvent {
   List<Object?> get props => [text];
 }
 
+/// Żądanie zatrzymania trwającego streamu (przycisk stop w UI).
+class ChatStreamStopRequested extends ChatEvent {
+  const ChatStreamStopRequested();
+}
+
 class _ChatTokenReceived extends ChatEvent {
   final String token;
   const _ChatTokenReceived(this.token);
@@ -165,6 +170,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatConversationCreated>(_onCreateConv);
     on<ChatConversationDeleted>(_onDeleteConv);
     on<ChatMessageSent>(_onSendMessage);
+    on<ChatStreamStopRequested>(_onStopStream);
     on<_ChatTokenReceived>(_onToken);
     on<_ChatSourcesReceived>(_onSources);
     on<_ChatStreamCompleted>(_onStreamDone);
@@ -319,12 +325,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onStreamDone(_ChatStreamCompleted e, Emitter emit) async {
-    if (state.messages.isNotEmpty &&
-        state.messages.last.role == MessageRole.assistant &&
-        state.messages.last.content.isNotEmpty) {
-      // Zapisz finalną wiadomość asystenta w bazie
-      await _saveMessage(state.messages.last);
-    }
+    await _persistPartialAssistant();
+    emit(state.copyWith(streaming: false));
+  }
+
+  /// Zatrzymuje trwający stream na żądanie użytkownika (przycisk stop) i zapisuje
+  /// to, co model zdążył wygenerować, żeby częściowa odpowiedź nie przepadła.
+  Future<void> _onStopStream(ChatStreamStopRequested e, Emitter emit) async {
+    if (!state.streaming) return;
+    await _sub?.cancel();
+    _sub = null;
+    await _persistPartialAssistant();
     emit(state.copyWith(streaming: false));
   }
 
@@ -332,9 +343,25 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(streaming: false, error: e.error));
   }
 
+  /// Zapisuje ostatnią wiadomość asystenta, jeśli ma już jakąkolwiek treść.
+  /// Idempotentne (insert z ConflictAlgorithm.replace) — bezpieczne przy
+  /// zakończeniu, zatrzymaniu i zamknięciu blocu.
+  Future<void> _persistPartialAssistant() async {
+    if (state.messages.isNotEmpty &&
+        state.messages.last.role == MessageRole.assistant &&
+        state.messages.last.content.isNotEmpty) {
+      await _saveMessage(state.messages.last);
+    }
+  }
+
   @override
-  Future<void> close() {
-    _sub?.cancel();
+  Future<void> close() async {
+    await _sub?.cancel();
+    // Wyjście z ekranu/przedmiotu w trakcie streamu — nie trać częściowej
+    // odpowiedzi (UI zostało zamknięte, ale to, co już spłynęło, zapisujemy).
+    if (state.streaming) {
+      await _persistPartialAssistant();
+    }
     return super.close();
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/di/injection.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../domain/entities/conversation.dart';
 import '../bloc/chat_bloc.dart';
@@ -9,6 +8,8 @@ import '../widgets/chat_input.dart';
 import '../widgets/conversation_list.dart';
 import '../widgets/message_bubble.dart';
 
+/// Zakładka czatu. `ChatBloc` jest dostarczany wyżej — w [SubjectDetailPage] —
+/// żeby przeżył przełączanie zakładek i całe okno przedmiotu (stream nie ginie).
 class ChatPage extends StatelessWidget {
   final String subjectId;
   final String subjectName;
@@ -20,11 +21,7 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ChatBloc>(
-      create: (_) =>
-          sl<ChatBloc>()..add(ChatConversationsLoadRequested(subjectId)),
-      child: _ChatView(subjectId: subjectId, subjectName: subjectName),
-    );
+    return _ChatView(subjectId: subjectId, subjectName: subjectName);
   }
 }
 
@@ -259,6 +256,8 @@ class _MessagesAreaState extends State<_MessagesArea> {
           streaming: state.streaming,
           onSend: (text) =>
               context.read<ChatBloc>().add(ChatMessageSent(text)),
+          onStop: () =>
+              context.read<ChatBloc>().add(const ChatStreamStopRequested()),
         ),
       ],
     );

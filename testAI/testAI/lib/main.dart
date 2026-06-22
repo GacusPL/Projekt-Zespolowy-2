@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/di/injection.dart';
+import 'core/settings/app_settings.dart';
 import 'core/theme/app_theme.dart';
 import 'features/subjects/presentation/pages/subjects_page.dart';
 
@@ -30,13 +31,18 @@ class LekturAIApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'LekturAI',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      home: const SubjectsPage(),
+    final settings = sl<AppSettings>();
+    // Przebudowa MaterialApp po zmianie motywu w Ustawieniach (na żywo).
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) => MaterialApp(
+        title: 'LekturAI',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: settings.themeMode,
+        home: const SubjectsPage(),
+      ),
     );
   }
 }

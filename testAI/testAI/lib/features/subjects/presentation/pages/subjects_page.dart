@@ -100,32 +100,21 @@ class _SubjectsView extends StatelessWidget {
             );
           }
 
-          return Padding(
+          return GridView.builder(
             padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final cols = width > 1100
-                    ? 4
-                    : width > 800
-                        ? 3
-                        : width > 500
-                            ? 2
-                            : 1;
-                return GridView.builder(
-                  itemCount: state.subjects.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: cols,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 1.5,
-                  ),
-                  itemBuilder: (_, i) => _SubjectCard(
-                    subject: state.subjects[i],
-                    onDelete: () => _confirmDelete(context, state.subjects[i]),
-                  ),
-                );
-              },
+            itemCount: state.subjects.length,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              // ~220 px na kartę → 2 kolumny na telefonie, więcej na szerszych
+              // ekranach; stała kompaktowa wysokość zamiast proporcji
+              // (na telefonie karty nie są przez to „w większości puste").
+              maxCrossAxisExtent: 220,
+              mainAxisExtent: 150,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+            ),
+            itemBuilder: (_, i) => _SubjectCard(
+              subject: state.subjects[i],
+              onDelete: () => _confirmDelete(context, state.subjects[i]),
             ),
           );
         },
@@ -206,7 +195,7 @@ class _SubjectCard extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(14),
           child: Stack(
             children: [
               Column(
@@ -225,34 +214,44 @@ class _SubjectCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    subject.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (subject.description?.isNotEmpty == true) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subject.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Text(
-                    'Utworzono ${dateFmt.format(subject.createdAt)}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 11,
+                  // Flexible — przy ciasnej karcie tekst się skraca (ellipsis),
+                  // zamiast powodować overflow.
+                  Flexible(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          subject.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (subject.description?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subject.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Text(
+                          'Utworzono ${dateFmt.format(subject.createdAt)}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

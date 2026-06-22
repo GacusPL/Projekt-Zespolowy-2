@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String _chatModel;
   late String _embeddingModel;
   late String _visionModel;
+  late ThemeMode _themeMode;
 
   bool _testing = false;
 
@@ -48,6 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _chatModel = _settings.chatModel;
     _embeddingModel = _settings.embeddingModel;
     _visionModel = _settings.visionModel;
+    _themeMode = _settings.themeMode;
   }
 
   @override
@@ -97,6 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _chatModel = _settings.chatModel;
       _embeddingModel = _settings.embeddingModel;
       _visionModel = _settings.visionModel;
+      _themeMode = _settings.themeMode;
     });
     _showSnack('Przywrócono ustawienia domyślne');
   }
@@ -138,6 +141,15 @@ class _SettingsPageState extends State<SettingsPage> {
               onChatChanged: (v) => setState(() => _chatModel = v),
               onEmbeddingChanged: (v) => setState(() => _embeddingModel = v),
               onVisionChanged: (v) => setState(() => _visionModel = v),
+            ),
+            const SizedBox(height: 16),
+            _AppearanceCard(
+              mode: _themeMode,
+              onChanged: (m) {
+                setState(() => _themeMode = m);
+                // Motyw zmieniamy od razu (na żywo), niezależnie od „Zapisz".
+                _settings.update(themeMode: m);
+              },
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -358,6 +370,49 @@ class _ModelDropdown extends StatelessWidget {
       onChanged: (v) {
         if (v != null) onChanged(v);
       },
+    );
+  }
+}
+
+/// Karta wyboru motywu aplikacji (jasny / ciemny / zgodny z systemem).
+class _AppearanceCard extends StatelessWidget {
+  final ThemeMode mode;
+  final ValueChanged<ThemeMode> onChanged;
+
+  const _AppearanceCard({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsCard(
+      icon: Icons.palette_outlined,
+      title: 'Wygląd',
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<ThemeMode>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(
+                value: ThemeMode.system,
+                label: Text('System'),
+                icon: Icon(Icons.brightness_auto),
+              ),
+              ButtonSegment(
+                value: ThemeMode.light,
+                label: Text('Jasny'),
+                icon: Icon(Icons.light_mode_outlined),
+              ),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                label: Text('Ciemny'),
+                icon: Icon(Icons.dark_mode_outlined),
+              ),
+            ],
+            selected: {mode},
+            onSelectionChanged: (s) => onChanged(s.first),
+          ),
+        ),
+      ],
     );
   }
 }
