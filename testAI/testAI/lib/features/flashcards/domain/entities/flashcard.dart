@@ -38,6 +38,20 @@ class Flashcard extends Equatable {
       dueDate.isBefore(DateTime.now()) ||
       dueDate.isAtSameMomentAs(DateTime.now());
 
+  /// Edycja treści fiszki — zachowuje stan SM-2 (EF, interwał, powtórzenia, termin).
+  Flashcard copyWith({String? question, String? answer}) => Flashcard(
+        id: id,
+        subjectId: subjectId,
+        question: question ?? this.question,
+        answer: answer ?? this.answer,
+        createdAt: createdAt,
+        easeFactor: easeFactor,
+        intervalDays: intervalDays,
+        repetitions: repetitions,
+        dueDate: dueDate,
+        lastReviewed: lastReviewed,
+      );
+
   Flashcard copyWithReview({
     required double easeFactor,
     required int intervalDays,

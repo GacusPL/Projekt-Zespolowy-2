@@ -41,6 +41,19 @@ class _FlashcardsView extends StatelessWidget {
         ));
   }
 
+  Future<void> _editCard(BuildContext context, Flashcard card) async {
+    final result = await showDialog<({String question, String answer})>(
+      context: context,
+      builder: (_) => _EditFlashcardDialog(card: card),
+    );
+    if (result == null || !context.mounted) return;
+    context.read<FlashcardsBloc>().add(FlashcardsEditRequested(
+          card: card,
+          question: result.question,
+          answer: result.answer,
+        ));
+  }
+
   void _startReview(BuildContext context, List<Flashcard> cards) {
     if (cards.isEmpty) return;
     Navigator.of(context).push(
@@ -116,6 +129,7 @@ class _FlashcardsView extends StatelessWidget {
                   final c = state.cards[i];
                   return _FlashcardListTile(
                     card: c,
+                    onEdit: () => _editCard(context, c),
                     onDelete: () => context
                         .read<FlashcardsBloc>()
                         .add(FlashcardsDeleteRequested(c.id)),
@@ -268,8 +282,13 @@ class _StatChip extends StatelessWidget {
 
 class _FlashcardListTile extends StatelessWidget {
   final Flashcard card;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const _FlashcardListTile({required this.card, required this.onDelete});
+  const _FlashcardListTile({
+    required this.card,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -323,9 +342,20 @@ class _FlashcardListTile extends StatelessWidget {
             ],
           ),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: onDelete,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edytuj',
+              onPressed: onEdit,
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Usuń',
+              onPressed: onDelete,
+            ),
+          ],
         ),
         children: [
           Container(
@@ -344,6 +374,76 @@ class _FlashcardListTile extends StatelessWidget {
     if (diff < 1) return 'dziś';
     if (diff == 1) return 'jutro';
     return 'za $diff dni';
+  }
+}
+
+class _EditFlashcardDialog extends StatefulWidget {
+  final Flashcard card;
+  const _EditFlashcardDialog({required this.card});
+
+  @override
+  State<_EditFlashcardDialog> createState() => _EditFlashcardDialogState();
+}
+
+class _EditFlashcardDialogState extends State<_EditFlashcardDialog> {
+  late final TextEditingController _qCtrl;
+  late final TextEditingController _aCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _qCtrl = TextEditingController(text: widget.card.question);
+    _aCtrl = TextEditingController(text: widget.card.answer);
+  }
+
+  @override
+  void dispose() {
+    _qCtrl.dispose();
+    _aCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final q = _qCtrl.text.trim();
+    final a = _aCtrl.text.trim();
+    if (q.isEmpty || a.isEmpty) return;
+    Navigator.of(context).pop((question: q, answer: a));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edytuj fiszkę'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _qCtrl,
+              maxLines: null,
+              decoration: const InputDecoration(labelText: 'Pytanie'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _aCtrl,
+              maxLines: null,
+              decoration: const InputDecoration(labelText: 'Odpowiedź'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Anuluj'),
+        ),
+        FilledButton(
+          onPressed: _save,
+          child: const Text('Zapisz'),
+        ),
+      ],
+    );
   }
 }
 

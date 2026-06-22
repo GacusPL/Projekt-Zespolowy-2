@@ -8,14 +8,25 @@ extension MessageRoleX on MessageRole {
       MessageRole.values.firstWhere((r) => r.name == v);
 }
 
+/// Źródło (zacytowany fragment) użyte w odpowiedzi: nazwa pliku + treść fragmentu.
+/// `snippet` bywa pusty dla starszych wiadomości (przed dodaniem podglądu).
+class MessageSource extends Equatable {
+  final String filename;
+  final String snippet;
+  const MessageSource({required this.filename, this.snippet = ''});
+
+  @override
+  List<Object?> get props => [filename, snippet];
+}
+
 /// Pojedyncza wiadomość w konwersacji.
-/// `sources` zawiera nazwy plików z których model korzystał (do "cytowania").
+/// `sources` zawiera fragmenty (plik + treść), z których model korzystał.
 class Message extends Equatable {
   final String id;
   final String conversationId;
   final MessageRole role;
   final String content;
-  final List<String> sources;
+  final List<MessageSource> sources;
   final DateTime createdAt;
 
   const Message({
@@ -29,7 +40,7 @@ class Message extends Equatable {
 
   Message copyWith({
     String? content,
-    List<String>? sources,
+    List<MessageSource>? sources,
   }) =>
       Message(
         id: id,

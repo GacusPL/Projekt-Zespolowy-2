@@ -6,10 +6,14 @@ import '../../domain/entities/conversation.dart';
 class MessageBubble extends StatelessWidget {
   final Message message;
   final bool isStreaming;
+  final VoidCallback? onCopy;
+  final VoidCallback? onRegenerate;
   const MessageBubble({
     super.key,
     required this.message,
     this.isStreaming = false,
+    this.onCopy,
+    this.onRegenerate,
   });
 
   @override
@@ -71,28 +75,58 @@ class MessageBubble extends StatelessWidget {
                               ),
                             ),
                           ),
-                          ...message.sources.map((s) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      scheme.primary.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: scheme.primary.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: Text(
-                                  s,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: scheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )),
+                          ...{for (final s in message.sources) s.filename}
+                              .map((file) => InkWell(
+                                    onTap: () =>
+                                        _showSourceSheet(context, file),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scheme.primary
+                                            .withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: scheme.primary
+                                              .withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        file,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: scheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  )),
+                        ],
+                      ),
+                    ),
+                  if (!isStreaming &&
+                      message.content.isNotEmpty &&
+                      (onCopy != null || onRegenerate != null))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (onCopy != null)
+                            _ActionButton(
+                              icon: Icons.copy_outlined,
+                              tooltip: 'Kopiuj',
+                              onTap: onCopy!,
+                            ),
+                          if (onRegenerate != null)
+                            _ActionButton(
+                              icon: Icons.refresh,
+                              tooltip: 'Regeneruj',
+                              onTap: onRegenerate!,
+                            ),
                         ],
                       ),
                     ),
@@ -104,6 +138,81 @@ class MessageBubble extends StatelessWidget {
           if (isUser) _avatar(scheme, true),
         ],
       ),
+    );
+  }
+
+  void _showSourceSheet(BuildContext context, String filename) {
+    final fragments = message.sources
+        .where((s) => s.filename == filename && s.snippet.trim().isNotEmpty)
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) {
+        final scheme = Theme.of(ctx).colorScheme;
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5,
+          minChildSize: 0.25,
+          maxChildSize: 0.9,
+          builder: (ctx, scrollCtrl) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.description_outlined,
+                        size: 18, color: scheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        filename,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Fragmenty użyte w odpowiedzi',
+                  style:
+                      TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: fragments.isEmpty
+                      ? Text(
+                          'Podgląd niedostępny dla tej wiadomości.',
+                          style: TextStyle(color: scheme.onSurfaceVariant),
+                        )
+                      : ListView.separated(
+                          controller: scrollCtrl,
+                          itemCount: fragments.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (_, i) => Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: SelectableText(
+                              fragments[i].snippet,
+                              style: const TextStyle(fontSize: 13, height: 1.4),
+                            ),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -157,6 +266,33 @@ class MessageBubble extends StatelessWidget {
         isUser ? Icons.person : Icons.auto_awesome,
         size: 14,
         color: isUser ? scheme.onPrimary : scheme.onTertiaryContainer,
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  const _ActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Icon(icon, size: 16, color: color),
+        ),
       ),
     );
   }

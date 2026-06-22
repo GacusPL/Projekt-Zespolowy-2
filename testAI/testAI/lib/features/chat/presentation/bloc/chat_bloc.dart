@@ -57,6 +57,11 @@ class ChatStreamStopRequested extends ChatEvent {
   const ChatStreamStopRequested();
 }
 
+/// Ponowne wygenerowanie ostatniej odpowiedzi asystenta (przycisk „regeneruj").
+class ChatRegenerateRequested extends ChatEvent {
+  const ChatRegenerateRequested();
+}
+
 class _ChatTokenReceived extends ChatEvent {
   final String token;
   const _ChatTokenReceived(this.token);
@@ -171,6 +176,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatConversationDeleted>(_onDeleteConv);
     on<ChatMessageSent>(_onSendMessage);
     on<ChatStreamStopRequested>(_onStopStream);
+    on<ChatRegenerateRequested>(_onRegenerate);
     on<_ChatTokenReceived>(_onToken);
     on<_ChatSourcesReceived>(_onSources);
     on<_ChatStreamCompleted>(_onStreamDone);
@@ -274,11 +280,54 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ));
 
     // 3. Start streamu
-    await _sub?.cancel();
-    final stream = _streamRag(
+    await _startRagStream(
       subjectId: conv.subjectId,
       userMessage: e.text.trim(),
       history: state.messages,
+    );
+  }
+
+  /// Ponawia ostatnią odpowiedź: czyści treść ostatniej wiadomości asystenta
+  /// (ten sam id → zapis nadpisze wiersz) i odpala RAG dla poprzedzającego
+  /// pytania użytkownika.
+  Future<void> _onRegenerate(
+      ChatRegenerateRequested e, Emitter emit) async {
+    final conv = state.activeConversation;
+    if (conv == null || state.streaming) return;
+    if (state.messages.length < 2) return;
+    final last = state.messages.last;
+    if (last.role != MessageRole.assistant) return;
+    final prevUser = state.messages[state.messages.length - 2];
+    if (prevUser.role != MessageRole.user) return;
+
+    final cleared = last.copyWith(content: '', sources: const []);
+    final newList = [...state.messages];
+    newList[newList.length - 1] = cleared;
+    emit(state.copyWith(
+      messages: newList,
+      streaming: true,
+      lastSources: const [],
+      clearError: true,
+    ));
+
+    await _startRagStream(
+      subjectId: conv.subjectId,
+      userMessage: prevUser.content,
+      history: newList,
+    );
+  }
+
+  /// Wspólny start streamu RAG (anuluje poprzednią subskrypcję, podpina nową).
+  Future<void> _startRagStream({
+    required String subjectId,
+    required String userMessage,
+    required List<Message> history,
+  }) async {
+    await _sub?.cancel();
+    final stream = _streamRag(
+      subjectId: subjectId,
+      userMessage: userMessage,
+      history: history,
     );
     _sub = stream.listen(
       (event) {
@@ -312,10 +361,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (state.messages.isNotEmpty &&
         state.messages.last.role == MessageRole.assistant) {
       final last = state.messages.last;
+      // Zachowujemy każdy fragment osobno (plik + treść) — do podglądu źródła.
       final sources = e.sources
-          .map((c) => c.documentFilename ?? '')
-          .where((s) => s.isNotEmpty)
-          .toSet()
+          .where((c) => (c.documentFilename ?? '').isNotEmpty)
+          .map((c) => MessageSource(
+                filename: c.documentFilename!,
+                snippet: c.content,
+              ))
           .toList();
       final updated = last.copyWith(sources: sources);
       final newList = [...state.messages]

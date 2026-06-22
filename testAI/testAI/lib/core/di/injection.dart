@@ -141,6 +141,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GenerateFlashcardsUseCase(sl()));
   sl.registerLazySingleton(() => CreateFlashcardUseCase(sl()));
   sl.registerLazySingleton(() => DeleteFlashcardUseCase(sl()));
+  sl.registerLazySingleton(() => EditFlashcardUseCase(sl()));
   sl.registerLazySingleton(() => ReviewFlashcardUseCase(sl()));
 
   sl.registerFactory(() => FlashcardsBloc(
@@ -148,6 +149,7 @@ Future<void> initDependencies() async {
         generateFlashcards: sl(),
         createFlashcard: sl(),
         deleteFlashcard: sl(),
+        editFlashcard: sl(),
         reviewFlashcard: sl(),
       ));
 

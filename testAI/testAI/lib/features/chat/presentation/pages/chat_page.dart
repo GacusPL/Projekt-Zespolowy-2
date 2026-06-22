@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../shared/widgets/empty_state.dart';
@@ -188,6 +189,16 @@ class _MessagesAreaState extends State<_MessagesArea> {
     super.dispose();
   }
 
+  void _copy(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Skopiowano'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = widget.state;
@@ -239,14 +250,19 @@ class _MessagesAreaState extends State<_MessagesArea> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 12),
                   itemCount: state.messages.length,
-                  itemBuilder: (_, i) {
+                  itemBuilder: (itemContext, i) {
                     final m = state.messages[i];
                     final isLast = i == state.messages.length - 1;
+                    final isAssistant = m.role == MessageRole.assistant;
                     return MessageBubble(
                       message: m,
-                      isStreaming: isLast &&
-                          state.streaming &&
-                          m.role == MessageRole.assistant,
+                      isStreaming: isLast && state.streaming && isAssistant,
+                      onCopy: () => _copy(itemContext, m.content),
+                      onRegenerate: (isLast && isAssistant && !state.streaming)
+                          ? () => itemContext
+                              .read<ChatBloc>()
+                              .add(const ChatRegenerateRequested())
+                          : null,
                     );
                   },
                 ),

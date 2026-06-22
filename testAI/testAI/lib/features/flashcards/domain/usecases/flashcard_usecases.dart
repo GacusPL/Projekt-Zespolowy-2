@@ -46,6 +46,17 @@ class DeleteFlashcardUseCase {
   Future<Either<Failure, Unit>> call(String id) => repo.delete(id);
 }
 
+class EditFlashcardUseCase {
+  final FlashcardsRepository repo;
+  EditFlashcardUseCase(this.repo);
+  Future<Either<Failure, Flashcard>> call({
+    required Flashcard card,
+    required String question,
+    required String answer,
+  }) =>
+      repo.update(card.copyWith(question: question, answer: answer));
+}
+
 class ReviewFlashcardUseCase {
   final FlashcardsRepository repo;
   ReviewFlashcardUseCase(this.repo);

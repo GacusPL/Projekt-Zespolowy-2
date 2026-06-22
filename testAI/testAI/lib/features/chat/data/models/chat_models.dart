@@ -42,18 +42,29 @@ class MessageModel extends Message {
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> m) {
-    final rawSrc = m['sources'] as String?;
-    final sources = rawSrc == null
-        ? <String>[]
-        : (jsonDecode(rawSrc) as List).cast<String>();
     return MessageModel(
       id: m['id'] as String,
       conversationId: m['conversation_id'] as String,
       role: MessageRoleX.fromDb(m['role'] as String),
       content: m['content'] as String,
-      sources: sources,
+      sources: _decodeSources(m['sources'] as String?),
       createdAt: DateTime.fromMillisecondsSinceEpoch(m['created_at'] as int),
     );
+  }
+
+  /// Parsowanie źródeł z JSON. Wstecznie kompatybilne: stary format to lista
+  /// nazw plików (`["a.pdf"]`), nowy to lista obiektów (`[{file, snippet}]`).
+  static List<MessageSource> _decodeSources(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    final decoded = jsonDecode(raw) as List;
+    return decoded.map<MessageSource>((e) {
+      if (e is String) return MessageSource(filename: e);
+      final map = e as Map<String, dynamic>;
+      return MessageSource(
+        filename: (map['file'] ?? '') as String,
+        snippet: (map['snippet'] ?? '') as String,
+      );
+    }).toList();
   }
 
   Map<String, dynamic> toMap() => {
@@ -61,7 +72,11 @@ class MessageModel extends Message {
         'conversation_id': conversationId,
         'role': role.dbValue,
         'content': content,
-        'sources': jsonEncode(sources),
+        'sources': jsonEncode(
+          sources
+              .map((s) => {'file': s.filename, 'snippet': s.snippet})
+              .toList(),
+        ),
         'created_at': createdAt.millisecondsSinceEpoch,
       };
 }

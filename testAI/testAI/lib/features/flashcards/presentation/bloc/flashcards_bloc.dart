@@ -47,6 +47,19 @@ class FlashcardsDeleteRequested extends FlashcardsEvent {
   List<Object?> get props => [id];
 }
 
+class FlashcardsEditRequested extends FlashcardsEvent {
+  final Flashcard card;
+  final String question;
+  final String answer;
+  const FlashcardsEditRequested({
+    required this.card,
+    required this.question,
+    required this.answer,
+  });
+  @override
+  List<Object?> get props => [card, question, answer];
+}
+
 class FlashcardReviewed extends FlashcardsEvent {
   final Flashcard card;
   final ReviewGrade grade;
@@ -95,6 +108,7 @@ class FlashcardsBloc extends Bloc<FlashcardsEvent, FlashcardsState> {
   final GenerateFlashcardsUseCase _generate;
   final CreateFlashcardUseCase _create;
   final DeleteFlashcardUseCase _delete;
+  final EditFlashcardUseCase _edit;
   final ReviewFlashcardUseCase _review;
 
   FlashcardsBloc({
@@ -102,17 +116,20 @@ class FlashcardsBloc extends Bloc<FlashcardsEvent, FlashcardsState> {
     required GenerateFlashcardsUseCase generateFlashcards,
     required CreateFlashcardUseCase createFlashcard,
     required DeleteFlashcardUseCase deleteFlashcard,
+    required EditFlashcardUseCase editFlashcard,
     required ReviewFlashcardUseCase reviewFlashcard,
   })  : _get = getFlashcards,
         _generate = generateFlashcards,
         _create = createFlashcard,
         _delete = deleteFlashcard,
+        _edit = editFlashcard,
         _review = reviewFlashcard,
         super(const FlashcardsState()) {
     on<FlashcardsLoadRequested>(_onLoad);
     on<FlashcardsGenerateRequested>(_onGenerate);
     on<FlashcardsCreateRequested>(_onCreate);
     on<FlashcardsDeleteRequested>(_onDelete);
+    on<FlashcardsEditRequested>(_onEdit);
     on<FlashcardReviewed>(_onReviewed);
   }
 
@@ -157,6 +174,23 @@ class FlashcardsBloc extends Bloc<FlashcardsEvent, FlashcardsState> {
       (_) => emit(state.copyWith(
         cards: state.cards.where((c) => c.id != e.id).toList(),
       )),
+    );
+  }
+
+  Future<void> _onEdit(FlashcardsEditRequested e, Emitter emit) async {
+    final r = await _edit(
+      card: e.card,
+      question: e.question,
+      answer: e.answer,
+    );
+    r.fold(
+      (f) => emit(state.copyWith(error: f.message)),
+      (updated) {
+        final list = state.cards
+            .map((c) => c.id == updated.id ? updated : c)
+            .toList();
+        emit(state.copyWith(cards: list));
+      },
     );
   }
 
