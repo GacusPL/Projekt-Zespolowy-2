@@ -197,8 +197,7 @@ Co robi notatnik:
 4. Dodatkowo: monitor stanu na żywo (Ollama/ngrok/Cloudflare) i komórki do
    testowania połączenia oraz awaryjnego restartu serwera.
 
-> ⚠️ **Bezpieczeństwo:** wstaw **własny** authtoken ngrok. Nie commituj swojego
-> tokenu do repozytorium — każdy, kto go zobaczy, może użyć Twojego konta.
+> ⚠️ **Auth:** Wstaw własny authtoken ngrok. 
 
 > 💡 Sesje Colab są ulotne — po zamknięciu środowiska adres URL przestaje
 > działać i przy kolejnym uruchomieniu trzeba zaktualizować go w Ustawieniach.
