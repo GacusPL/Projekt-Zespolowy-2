@@ -34,3 +34,4 @@ web/
 *.db
 *.sqlite
 lekturai.db
+notes.ipynb
