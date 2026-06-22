@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lekturai/core/utils/vector_math.dart';
+import 'package:LekturAI/core/utils/vector_math.dart';
 
 void main() {
   group('VectorMath.cosineSimilarity', () {

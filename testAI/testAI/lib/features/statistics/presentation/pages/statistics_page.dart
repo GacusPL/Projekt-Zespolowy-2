@@ -10,7 +10,7 @@ import '../../../flashcards/presentation/bloc/flashcards_bloc.dart';
 import '../../../quiz/domain/entities/quiz.dart';
 import '../../../quiz/domain/usecases/quiz_usecases.dart';
 
-/// Strona statystyk — pokazuje postęp studenta w nauce.
+/// Strona statystyk - pokazuje postęp studenta w nauce.
 /// Wykorzystuje `fl_chart` do wizualizacji:
 ///   1. krzywej wyników quizów w czasie,
 ///   2. statystyk fiszek (zgodnie z SM-2).
@@ -93,7 +93,7 @@ class _StatsViewState extends State<_StatsView> {
             const SizedBox(height: 24),
             const _SectionTitle(
               icon: Icons.style_outlined,
-              title: 'Fiszki — postęp w nauce',
+              title: 'Fiszki - postęp w nauce',
             ),
             const SizedBox(height: 12),
             BlocBuilder<FlashcardsBloc, FlashcardsState>(

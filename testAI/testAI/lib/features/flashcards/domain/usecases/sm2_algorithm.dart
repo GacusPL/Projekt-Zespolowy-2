@@ -28,7 +28,7 @@ class Sm2Algorithm {
     int interval;
 
     if (q < 3) {
-      // niepowodzenie — wracamy do początku
+      // niepowodzenie - wracamy do początku
       repetitions = 0;
       interval = 0;
     } else {
@@ -44,7 +44,7 @@ class Sm2Algorithm {
 
     final dueDate = DateTime.now().add(Duration(
       days: interval == 0 ? 0 : interval,
-      // interval=0 (q<3) ustawiamy "teraz" — fiszka znów wpadnie do kolejki
+      // interval=0 (q<3) ustawiamy "teraz" - fiszka znów wpadnie do kolejki
       minutes: interval == 0 ? 10 : 0,
     ));
 

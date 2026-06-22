@@ -32,4 +32,13 @@ abstract class DocumentsRepository {
   Future<Either<Failure, List<DocumentChunk>>> getAllChunksForSubject(
     String subjectId,
   );
+
+  /// Liczba fragmentów zaindeksowanych innym modelem embeddingów niż bieżący.
+  Future<Either<Failure, int>> countStaleChunks();
+
+  /// Przelicza embeddingi niezgodnych fragmentów bieżącym modelem.
+  /// Zwraca liczbę przeindeksowanych fragmentów.
+  Future<Either<Failure, int>> reindexStale({
+    void Function(double progress, String stage)? onProgress,
+  });
 }

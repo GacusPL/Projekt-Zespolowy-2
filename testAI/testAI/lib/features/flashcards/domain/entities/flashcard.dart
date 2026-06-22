@@ -38,7 +38,7 @@ class Flashcard extends Equatable {
       dueDate.isBefore(DateTime.now()) ||
       dueDate.isAtSameMomentAs(DateTime.now());
 
-  /// Edycja treści fiszki — zachowuje stan SM-2 (EF, interwał, powtórzenia, termin).
+  /// Edycja treści fiszki - zachowuje stan SM-2 (EF, interwał, powtórzenia, termin).
   Flashcard copyWith({String? question, String? answer}) => Flashcard(
         id: id,
         subjectId: subjectId,
@@ -85,7 +85,7 @@ class Flashcard extends Equatable {
       ];
 }
 
-/// Ocena studenta przy powtórce — mapuje się na q∈{0..5} algorytmu SM-2.
+/// Ocena studenta przy powtórce - mapuje się na q∈{0..5} algorytmu SM-2.
 enum ReviewGrade {
   again, // 0 – nie pamiętam
   hard,  // 3 – z trudem

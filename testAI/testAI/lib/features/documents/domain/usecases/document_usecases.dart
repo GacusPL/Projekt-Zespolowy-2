@@ -58,3 +58,18 @@ class GetAllChunksUseCase {
   Future<Either<Failure, List<DocumentChunk>>> call(String subjectId) =>
       repo.getAllChunksForSubject(subjectId);
 }
+
+class CountStaleChunksUseCase {
+  final DocumentsRepository repo;
+  CountStaleChunksUseCase(this.repo);
+  Future<Either<Failure, int>> call() => repo.countStaleChunks();
+}
+
+class ReindexDocumentsUseCase {
+  final DocumentsRepository repo;
+  ReindexDocumentsUseCase(this.repo);
+  Future<Either<Failure, int>> call({
+    void Function(double progress, String stage)? onProgress,
+  }) =>
+      repo.reindexStale(onProgress: onProgress);
+}

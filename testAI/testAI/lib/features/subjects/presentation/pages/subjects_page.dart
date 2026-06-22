@@ -12,7 +12,7 @@ import '../bloc/subjects_bloc.dart';
 import '../widgets/create_subject_dialog.dart';
 import 'subject_detail_page.dart';
 
-/// Główny ekran aplikacji — siatka kart przedmiotów.
+/// Główny ekran aplikacji - siatka kart przedmiotów.
 class SubjectsPage extends StatelessWidget {
   const SubjectsPage({super.key});
 
@@ -108,7 +108,7 @@ class _SubjectsView extends StatelessWidget {
               // ekranach; stała kompaktowa wysokość zamiast proporcji
               // (na telefonie karty nie są przez to „w większości puste").
               maxCrossAxisExtent: 220,
-              mainAxisExtent: 150,
+              mainAxisExtent: 164,
               mainAxisSpacing: 14,
               crossAxisSpacing: 14,
             ),
@@ -214,45 +214,44 @@ class _SubjectCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // Flexible — przy ciasnej karcie tekst się skraca (ellipsis),
-                  // zamiast powodować overflow.
-                  Flexible(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          subject.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
+                  // Tekst u dołu karty (Spacer wypycha w dół). Bez Flexible, by
+                  // nie „głodzić" bloku tekstu — stała wysokość komórki z zapasem
+                  // (mainAxisExtent) zapobiega overflow.
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                         ),
-                        if (subject.description?.isNotEmpty == true) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            subject.description!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 6),
+                      ),
+                      if (subject.description?.isNotEmpty == true) ...[
+                        const SizedBox(height: 4),
                         Text(
-                          'Utworzono ${dateFmt.format(subject.createdAt)}',
+                          subject.description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 11,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
                           ),
                         ),
                       ],
-                    ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Utworzono ${dateFmt.format(subject.createdAt)}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

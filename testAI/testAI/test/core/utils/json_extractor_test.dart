@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lekturai/core/utils/json_extractor.dart';
+import 'package:LekturAI/core/utils/json_extractor.dart';
 
 void main() {
   group('JsonExtractor.tryExtractObject', () {

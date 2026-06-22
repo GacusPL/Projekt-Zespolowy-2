@@ -100,4 +100,30 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, int>> countStaleChunks() async {
+    try {
+      return Right(await _local.countStaleChunks());
+    } on DatabaseException catch (e) {
+      return Left(DatabaseFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> reindexStale({
+    void Function(double progress, String stage)? onProgress,
+  }) async {
+    try {
+      return Right(await _local.reindexStaleChunks(onProgress: onProgress));
+    } on OllamaException catch (e) {
+      return Left(OllamaFailure(e.message));
+    } on DatabaseException catch (e) {
+      return Left(DatabaseFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
 }

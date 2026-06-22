@@ -5,8 +5,9 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/network/ollama_client.dart';
 import '../../../../core/settings/app_settings.dart';
 import '../../../../core/settings/ollama_models.dart';
+import '../../../documents/domain/usecases/document_usecases.dart';
 
-/// Ekran ustawień — pozwala zmienić adres serwera Ollama oraz wybrać modele
+/// Ekran ustawień - pozwala zmienić adres serwera Ollama oraz wybrać modele
 /// z listy, bez rekompilacji aplikacji.
 ///
 /// Typowy scenariusz: Ollama uruchomiona w Google Colab i wystawiona tunelem
@@ -86,8 +87,9 @@ class _SettingsPageState extends State<SettingsPage> {
       visionModel: _visionModel,
     );
     if (!mounted) return;
+    // Nie zamykamy ekranu - po zmianie modelu embeddingów `_ReindexNotice`
+    // (nasłuchuje AppSettings) od razu pokaże ostrzeżenie + przycisk reindeksacji.
     _showSnack('Zapisano ustawienia');
-    Navigator.of(context).pop();
   }
 
   Future<void> _resetDefaults() async {
@@ -284,8 +286,8 @@ class _ModelsCard extends StatelessWidget {
       title: 'Modele',
       children: [
         Text(
-          'Wybierz z listy — pokazany rozmiar to przybliżona zajętość VRAM. '
-          'Budżet karty: ${OllamaModels.maxVramGb.toStringAsFixed(1)} GB. '
+          'Wybierz z listy - pokazany rozmiar to przybliżona zajętość VRAM. '
+          'Max budżet karty: ${OllamaModels.maxVramGb.toStringAsFixed(1)} GB. '
           'Pamiętaj, by wcześniej pobrać model: `ollama pull <nazwa>`.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
@@ -315,6 +317,8 @@ class _ModelsCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.outline,
               ),
         ),
+        const SizedBox(height: 12),
+        const _ReindexNotice(),
         const SizedBox(height: 16),
         _ModelDropdown(
           label: 'Model wizyjny (OCR zdjęć)',
@@ -357,7 +361,7 @@ class _ModelDropdown extends StatelessWidget {
     ];
 
     return DropdownButtonFormField<String>(
-      // Klucz zależny od wartości — gdy zmieni się ona z zewnątrz (np. „Przywróć
+      // Klucz zależny od wartości - gdy zmieni się ona z zewnątrz (np. „Przywróć
       // domyślne"), pole zainicjuje się ponownie z nowym wyborem.
       key: ValueKey('$label::$value'),
       initialValue: value,
@@ -413,6 +417,157 @@ class _AppearanceCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Ostrzeżenie + przycisk reindeksacji fragmentów niezgodnych z bieżącym
+/// modelem embeddingów. Liczy stan przez use case (jak statystyki - przez `sl`),
+/// odświeża się po zmianie ustawień (zapisaniu modelu).
+class _ReindexNotice extends StatefulWidget {
+  const _ReindexNotice();
+
+  @override
+  State<_ReindexNotice> createState() => _ReindexNoticeState();
+}
+
+class _ReindexNoticeState extends State<_ReindexNotice> {
+  final AppSettings _settings = sl<AppSettings>();
+  int? _stale;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings.addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _settings.removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final r = await sl<CountStaleChunksUseCase>()();
+    if (!mounted) return;
+    setState(() => _stale = r.fold((_) => 0, (n) => n));
+  }
+
+  Future<void> _reindex() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final progress = ValueNotifier<double>(0);
+    final stage = ValueNotifier<String>('Start…');
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _ReindexProgressDialog(progress: progress, stage: stage),
+    );
+
+    final r = await sl<ReindexDocumentsUseCase>()(
+      onProgress: (v, s) {
+        progress.value = v;
+        stage.value = s;
+      },
+    );
+
+    navigator.pop(); // zamknij dialog postępu
+    progress.dispose();
+    stage.dispose();
+    if (!mounted) return;
+
+    r.fold(
+      (f) => messenger.showSnackBar(SnackBar(
+        content: Text('Błąd reindeksacji: ${f.message}'),
+        backgroundColor: scheme.error,
+      )),
+      (n) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Przeindeksowano $n fragmentów')),
+        );
+        _load();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = _stale;
+    if (n == null || n == 0) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.error.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.warning_amber_rounded, size: 18, color: scheme.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$n fragmentów zaindeksowano innym modelem niż bieżący '
+                  '(„${_settings.embeddingModel}"). Wyszukiwanie ich pomija - '
+                  'przeindeksuj, by znów były używane.',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: _reindex,
+              icon: const Icon(Icons.sync, size: 18),
+              label: Text('Przeindeksuj ($n)'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReindexProgressDialog extends StatelessWidget {
+  final ValueNotifier<double> progress;
+  final ValueNotifier<String> stage;
+  const _ReindexProgressDialog({required this.progress, required this.stage});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Reindeksacja'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ValueListenableBuilder<String>(
+            valueListenable: stage,
+            builder: (_, s, __) => Text(s),
+          ),
+          const SizedBox(height: 12),
+          ValueListenableBuilder<double>(
+            valueListenable: progress,
+            builder: (_, v, __) => ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: v == 0 ? null : v,
+                minHeight: 6,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

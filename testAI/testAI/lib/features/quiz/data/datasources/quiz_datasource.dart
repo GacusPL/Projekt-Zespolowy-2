@@ -53,7 +53,7 @@ class QuizDataSourceImpl implements QuizDataSource {
       whereArgs: [subjectId],
       orderBy: 'created_at DESC',
     );
-    // Dla widoku listy nie wczytujemy pytań — zrobimy to lazy w getQuizById.
+    // Dla widoku listy nie wczytujemy pytań - zrobimy to lazy w getQuizById.
     return rows.map((m) => QuizModel.fromMap(m)).toList();
   }
 

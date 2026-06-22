@@ -15,7 +15,8 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._();
 
   static const String _dbName = 'lekturai.db';
-  static const int _dbVersion = 1;
+  // v2: kolumna chunks.embedding_model (wykrywanie fragmentów do reindeksacji).
+  static const int _dbVersion = 2;
 
   Database? _db;
 
@@ -42,7 +43,16 @@ class DatabaseHelper {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // v1 → v2: nazwa modelu embeddingów per fragment (do wykrywania reindeksacji).
+    // Stare wiersze dostają NULL — traktowane jako „nieznany model".
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE chunks ADD COLUMN embedding_model TEXT');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -74,12 +84,13 @@ class DatabaseHelper {
     // Chunki z embeddingami — serce indeksu RAG
     await db.execute('''
       CREATE TABLE chunks (
-        id            TEXT PRIMARY KEY,
-        document_id   TEXT NOT NULL,
-        subject_id    TEXT NOT NULL,
-        chunk_index   INTEGER NOT NULL,
-        content       TEXT NOT NULL,
-        embedding     BLOB NOT NULL,
+        id              TEXT PRIMARY KEY,
+        document_id     TEXT NOT NULL,
+        subject_id      TEXT NOT NULL,
+        chunk_index     INTEGER NOT NULL,
+        content         TEXT NOT NULL,
+        embedding       BLOB NOT NULL,
+        embedding_model TEXT,
         FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
         FOREIGN KEY (subject_id)  REFERENCES subjects(id)  ON DELETE CASCADE
       )

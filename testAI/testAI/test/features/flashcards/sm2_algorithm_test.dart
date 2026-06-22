@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lekturai/core/constants/app_constants.dart';
-import 'package:lekturai/features/flashcards/domain/entities/flashcard.dart';
-import 'package:lekturai/features/flashcards/domain/usecases/sm2_algorithm.dart';
+import 'package:LekturAI/core/constants/app_constants.dart';
+import 'package:LekturAI/features/flashcards/domain/entities/flashcard.dart';
+import 'package:LekturAI/features/flashcards/domain/usecases/sm2_algorithm.dart';
 
 Flashcard _newCard({
   double easeFactor = AppConstants.sm2InitialEaseFactor,

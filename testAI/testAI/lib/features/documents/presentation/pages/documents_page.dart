@@ -94,7 +94,7 @@ class _DocumentsView extends StatelessWidget {
         icon: Icons.upload_file_outlined,
         title: 'Brak materiałów',
         description:
-            'Wgraj PDF lub zdjęcie notatek — zostaną podzielone na fragmenty '
+            'Wgraj PDF lub zdjęcie notatek - zostaną podzielone na fragmenty '
             'i zaindeksowane do wyszukiwania semantycznego.',
         action: FilledButton.icon(
           onPressed: state.uploading ? null : () => _pickFile(context),
@@ -251,7 +251,12 @@ class _DocumentTile extends StatelessWidget {
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Row(
+          // Wrap zamiast Row — na wąskim ekranie elementy zawijają się zamiast
+          // wychodzić poza kafelek.
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Container(
                 padding:
@@ -269,7 +274,6 @@ class _DocumentTile extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
               Text(
                 '${document.chunkCount} fragmentów',
                 style: TextStyle(
@@ -277,7 +281,6 @@ class _DocumentTile extends StatelessWidget {
                   color: scheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 8),
               Text(
                 '• ${dateFmt.format(document.uploadedAt)}',
                 style: TextStyle(

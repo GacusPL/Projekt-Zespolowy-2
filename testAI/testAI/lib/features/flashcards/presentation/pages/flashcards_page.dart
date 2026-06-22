@@ -88,8 +88,7 @@ class _FlashcardsView extends StatelessWidget {
             icon: Icons.style_outlined,
             title: 'Brak fiszek',
             description:
-                'Wygeneruj fiszki z materiałów lub dodaj je ręcznie. Aplikacja '
-                'wykorzystuje algorytm SM-2 (spaced repetition) — tak samo jak Anki.',
+                'Wygeneruj fiszki z materiałów lub dodaj je ręcznie.',
             action: FilledButton.icon(
               onPressed:
                   state.generating ? null : () => _generate(context),

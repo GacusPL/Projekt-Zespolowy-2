@@ -106,7 +106,7 @@ class _QuizListView extends StatelessWidget {
             icon: Icons.quiz_outlined,
             title: 'Brak quizów',
             description:
-                'Wygeneruj quiz z materiałów — pytania jednokrotnego wyboru '
+                'Wygeneruj quiz z materiałów - pytania jednokrotnego wyboru '
                 'z wyjaśnieniem poprawnych odpowiedzi.',
             action: FilledButton.icon(
               onPressed:

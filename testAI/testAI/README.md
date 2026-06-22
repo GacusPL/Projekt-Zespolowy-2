@@ -13,11 +13,12 @@
 | Moduł | Co robi |
 |---|---|
 | 🗂️ **Przedmioty** | Organizacja materiałów według przedmiotów akademickich z kolorowymi kartami. |
-| 📄 **Materiały** | Wgrywanie plików PDF (parser **Syncfusion**), zdjęć notatek (multimodalny model **llava** jako "OCR z AI" — radzi sobie też z pismem odręcznym) i tekstu. |
-| 💬 **Czat RAG** | Asystent odpowiadający na podstawie Twoich materiałów. Pełen **streaming** w stylu SSE, cytowanie źródeł, historia rozmów per przedmiot. |
-| 🎴 **Fiszki SM-2** | Generowane przez LLM lub dodawane ręcznie. Algorytm **SuperMemo-2** (ten sam co w Anki) pilnuje terminów powtórek. |
+| 📄 **Materiały** | Wgrywanie plików PDF (parser **Syncfusion** z porządkowaniem układów **wielokolumnowych** po geometrii), zdjęć notatek (multimodalny model **llava** jako "OCR z AI" — radzi sobie też z pismem odręcznym) i tekstu. |
+| 💬 **Czat RAG** | Asystent odpowiadający na podstawie Twoich materiałów. Pełen **streaming** w stylu SSE, **podgląd cytowanych fragmentów** (klik w źródło), zatrzymanie i regeneracja odpowiedzi, kopiowanie wiadomości, historia rozmów per przedmiot. Generacja nie przerywa się przy zmianie zakładki. |
+| 🎴 **Fiszki SM-2** | Generowane przez LLM, z możliwością edycji. Algorytm **SuperMemo-2** (ten sam co w Anki) pilnuje terminów powtórek. |
 | 🧪 **Quizy** | Pytania jednokrotnego wyboru (A/B/C/D) z wyjaśnieniem poprawnej odpowiedzi. Wynik zapisywany w statystykach. |
 | 📊 **Statystyki** | Krzywa wyników quizów w czasie, postęp utrwalenia fiszek (`fl_chart`). |
+| ⚙️ **Ustawienia** | Wybór serwera Ollama (lokalny/zewnętrzny), modeli (czat/embedding/wizja) i **motywu** (jasny/ciemny/system). **Reindeksacja** dokumentów po zmianie modelu embeddingów — bez ponownego wgrywania. |
 
 ---
 
@@ -55,8 +56,9 @@ PDF/zdjęcie/tekst
 
 **Dlaczego SQLite a nie Postgres + pgvector?** Aplikacja jest 100% offline,
 a dla typowej biblioteki studenta (kilkanaście dokumentów, kilka tysięcy
-chunków) cosine similarity liczony w pamięci w Dart jest wystarczająco szybki
-i nie wymaga uruchamiania bazy danych obok aplikacji.
+chunków) cosine similarity liczony w pamięci w Dart (w osobnym **isolate**, by
+nie blokować UI) jest wystarczająco szybki i nie wymaga uruchamiania bazy danych
+obok aplikacji.
 
 ---
 
@@ -221,6 +223,10 @@ flutter run -d <device-id> # Android (zobacz `flutter devices`)
 5. **Wygeneruj quiz** w zakładce *Quizy* — 5/10/15/20 pytań A/B/C/D z wyjaśnieniami.
 6. **Zobacz statystyki** w zakładce *Statystyki* — wykres wyników quizów w czasie
    i postęp utrwalenia fiszek.
+7. **Dostosuj w Ustawieniach** (⚙ w prawym górnym rogu ekranu głównego) — serwer
+   Ollama, modele i motyw (jasny/ciemny/system). Po zmianie modelu embeddingów
+   pojawi się przycisk *Przeindeksuj*, który przelicza wektory istniejących
+   dokumentów bez ponownego wgrywania.
 
 ---
 
@@ -262,10 +268,13 @@ nie ma żadnego serwera w chmurze.
 - Sprawdź czy `ollama serve` działa: `curl http://localhost:11434/api/tags`
 - Sprawdź czy zostały pobrane wymagane modele: `ollama list`
 
-**"Nieoczekiwany wymiar embeddingu"**
-- Aplikacja oczekuje 768D embeddingów z `nomic-embed-text`. Po zmianie modelu
-  embeddingów w **⚙ Ustawienia → Modele** na taki o innej wymiarowości wgraj
-  dokumenty ponownie (stare wektory są niekompatybilne).
+**Zmiana modelu embeddingów / „stare dokumenty nie są znajdowane"**
+- Po zmianie modelu embeddingów w **⚙ Ustawienia → Modele** wcześniej zapisane
+  wektory są niekompatybilne i wyszukiwanie je pomija. Aplikacja wykryje to i
+  pokaże ostrzeżenie z przyciskiem **„Przeindeksuj"** — kliknij, by przeliczyć
+  embeddingi istniejących dokumentów bieżącym modelem (bez ponownego wgrywania).
+  Wykrywa też zamianę modeli o tym samym wymiarze (np. `mxbai-embed-large` ↔
+  `bge-m3`, oba 1024D).
 
 **"Model zwrócił niepoprawny JSON dla fiszek/quizu"**
 - Czasem mały model halucynuje formatowanie. Spróbuj jeszcze raz lub wybierz

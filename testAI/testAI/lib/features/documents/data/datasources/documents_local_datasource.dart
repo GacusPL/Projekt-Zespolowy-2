@@ -36,6 +36,15 @@ abstract class DocumentsLocalDataSource {
   });
 
   Future<List<DocumentChunkModel>> getAllChunksForSubject(String subjectId);
+
+  /// Liczba fragmentów zaindeksowanych innym modelem embeddingów niż bieżący.
+  Future<int> countStaleChunks();
+
+  /// Przelicza embeddingi fragmentów niezgodnych z bieżącym modelem.
+  /// Zwraca liczbę przeindeksowanych fragmentów.
+  Future<int> reindexStaleChunks({
+    void Function(double progress, String stage)? onProgress,
+  });
 }
 
 class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
@@ -92,6 +101,93 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
     } catch (e) {
       throw DatabaseException('Błąd odczytu chunków: $e');
     }
+  }
+
+  // ===========================================================  REINDEX
+
+  /// Buduje warunek SQL „fragment niezgodny z bieżącym modelem".
+  /// - nazwa modelu różna od bieżącej (gdy zapisana) — łapie też modele o tym
+  ///   samym wymiarze (mxbai↔bge-m3);
+  /// - stare wiersze (model NULL, sprzed migracji) — tylko gdy wymiar nie pasuje,
+  ///   by nie alarmować użytkowników na domyślnym modelu.
+  (String, List<Object?>) _staleCondition(String model) {
+    final expectedDim = OllamaModels.embeddingDimensionFor(model);
+    final clauses = <String>[
+      '(embedding_model IS NOT NULL AND embedding_model != ?)',
+    ];
+    final args = <Object?>[model];
+    if (expectedDim != null) {
+      clauses.add('(embedding_model IS NULL AND LENGTH(embedding) != ?)');
+      args.add(expectedDim * 4);
+    }
+    return (clauses.join(' OR '), args);
+  }
+
+  @override
+  Future<int> countStaleChunks() async {
+    try {
+      final (where, args) = _staleCondition(_ollama.embeddingModel);
+      final db = await _db.database;
+      final rows = await db.rawQuery(
+        'SELECT COUNT(*) AS c FROM chunks WHERE $where',
+        args,
+      );
+      return (rows.first['c'] as int?) ?? 0;
+    } catch (e) {
+      throw DatabaseException('Błąd liczenia fragmentów: $e');
+    }
+  }
+
+  @override
+  Future<int> reindexStaleChunks({
+    void Function(double progress, String stage)? onProgress,
+  }) async {
+    final model = _ollama.embeddingModel;
+    final (where, args) = _staleCondition(model);
+    final db = await _db.database;
+
+    final List<Map<String, Object?>> rows;
+    try {
+      rows = await db.rawQuery(
+        'SELECT id, content FROM chunks WHERE $where',
+        args,
+      );
+    } catch (e) {
+      throw DatabaseException('Błąd odczytu fragmentów: $e');
+    }
+
+    final total = rows.length;
+    if (total == 0) return 0;
+
+    final expectedDim = OllamaModels.embeddingDimensionFor(model);
+    int done = 0;
+    for (final row in rows) {
+      onProgress?.call(done / total, 'Reindeks ${done + 1} / $total…');
+      final content = row['content'] as String;
+      final embedding = await _ollama.generateEmbedding(content);
+      if (expectedDim != null && embedding.length != expectedDim) {
+        throw OllamaException(
+          'Nieoczekiwany wymiar embeddingu: ${embedding.length} '
+          '(model $model oczekuje $expectedDim).',
+        );
+      }
+      try {
+        await db.update(
+          'chunks',
+          {
+            'embedding': VectorMath.vectorToBlob(embedding),
+            'embedding_model': model,
+          },
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        );
+      } catch (e) {
+        throw DatabaseException('Błąd zapisu fragmentu: $e');
+      }
+      done++;
+    }
+    onProgress?.call(1.0, 'Gotowe!');
+    return done;
   }
 
   // ===========================================================  UPLOAD
@@ -176,6 +272,7 @@ class DocumentsLocalDataSourceImpl implements DocumentsLocalDataSource {
         'chunk_index': idx,
         'content': content,
         'embedding': VectorMath.vectorToBlob(embedding),
+        'embedding_model': _ollama.embeddingModel,
       });
       idx++;
     }

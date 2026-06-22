@@ -91,6 +91,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => DeleteDocumentUseCase(sl()));
   sl.registerLazySingleton(() => SearchRelevantChunksUseCase(sl()));
   sl.registerLazySingleton(() => GetAllChunksUseCase(sl()));
+  sl.registerLazySingleton(() => CountStaleChunksUseCase(sl()));
+  sl.registerLazySingleton(() => ReindexDocumentsUseCase(sl()));
 
   sl.registerFactory(() => DocumentsBloc(
         getDocuments: sl(),

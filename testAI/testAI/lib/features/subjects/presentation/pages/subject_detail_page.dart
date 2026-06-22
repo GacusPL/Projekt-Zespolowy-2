@@ -15,7 +15,7 @@ import '../../domain/entities/subject.dart';
 /// Strona przedmiotu z 5 zakładkami: dokumenty / czat / fiszki / quizy / statystyki.
 ///
 /// `ChatBloc` jest dostarczany tutaj (ponad `TabBarView`), żeby przeżył
-/// przełączanie zakładek i całe okno przedmiotu — dzięki temu trwający stream
+/// przełączanie zakładek i całe okno przedmiotu - dzięki temu trwający stream
 /// czatu nie jest anulowany przy zmianie zakładki. Zakładki są dodatkowo owinięte
 /// w [KeepAliveWrapper], by zachować swój stan (scroll, wpisany tekst itp.).
 class SubjectDetailPage extends StatelessWidget {
@@ -30,7 +30,7 @@ class SubjectDetailPage extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Przerwać generowanie?'),
         content: const Text(
-          'Asystent wciąż generuje odpowiedź. Wyjście przerwie generowanie — '
+          'Asystent wciąż generuje odpowiedź. Wyjście przerwie generowanie - '
           'to, co już powstało, zostanie zapisane w rozmowie.',
         ),
         actions: [

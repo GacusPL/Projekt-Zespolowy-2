@@ -4,7 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/subject.dart';
 import '../repositories/subjects_repository.dart';
 
-// Use case-y są celowo cienkie — to "intencje" w terminologii biznesowej.
+// Use case-y są celowo cienkie - to "intencje" w terminologii biznesowej.
 // Dzięki nim BLoCi nie zależą bezpośrednio od repozytoriów.
 
 class GetSubjectsUseCase {

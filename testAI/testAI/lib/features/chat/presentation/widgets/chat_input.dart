@@ -104,7 +104,7 @@ class _ChatInputState extends State<ChatInput> {
                     decoration: InputDecoration(
                       hintText: widget.streaming
                           ? 'Asystent odpowiada…'
-                          : 'Zapytaj o materiał (Enter aby wysłać, Shift+Enter — nowa linia)',
+                          : 'Zapytaj o materiał (Enter aby wysłać, Shift+Enter - nowa linia)',
                       filled: true,
                       fillColor: scheme.surfaceContainerHigh,
                       border: OutlineInputBorder(

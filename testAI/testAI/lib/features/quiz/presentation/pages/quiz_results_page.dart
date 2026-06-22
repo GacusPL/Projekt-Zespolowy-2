@@ -7,7 +7,7 @@ class QuizResultsPage extends StatelessWidget {
 
   String _verdict(double pct) {
     if (pct >= 90) return 'Świetnie! Materiał opanowany.';
-    if (pct >= 75) return 'Dobry wynik — jeszcze trochę i będzie idealnie.';
+    if (pct >= 75) return 'Dobry wynik - jeszcze trochę i będzie idealnie.';
     if (pct >= 50) return 'Średnio. Warto powtórzyć materiał.';
     return 'Wróć do materiałów i spróbuj ponownie.';
   }

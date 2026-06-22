@@ -11,7 +11,7 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
 
-  // Paleta kolorów do wyboru — wszystkie odcienie 600/500 dla spójności.
+  // Paleta kolorów do wyboru - wszystkie odcienie 600/500 dla spójności.
   // Trzymamy jako int (ARGB) by uniknąć zależności od wersji API Color.
   static const _paletteValues = <int>[
     0xFF4F46E5, // indigo

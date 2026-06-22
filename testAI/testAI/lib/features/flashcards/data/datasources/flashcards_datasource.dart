@@ -84,7 +84,7 @@ class FlashcardsDataSourceImpl implements FlashcardsDataSource {
       question: question,
       answer: answer,
       createdAt: now,
-      dueDate: now, // nowa fiszka — od razu do nauki
+      dueDate: now, // nowa fiszka - od razu do nauki
     );
     await db.insert('flashcards', card.toMap());
     return card;
@@ -125,7 +125,7 @@ class FlashcardsDataSourceImpl implements FlashcardsDataSource {
       );
     }
 
-    // Ograniczamy długość kontekstu — by zmieścić się w oknie modelu.
+    // Ograniczamy długość kontekstu - by zmieścić się w oknie modelu.
     // ~ 12 tysięcy znaków = ok. 2-3k tokenów wystarczy dla małych modeli.
     final buf = StringBuffer();
     for (final c in chunks) {

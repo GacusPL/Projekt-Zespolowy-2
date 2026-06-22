@@ -1,4 +1,4 @@
-name: lekturai
+name: LekturAI
 description: "LekturAI – inteligentny asystent nauki oparty o lokalny model LLM (Ollama) i system RAG."
 publish_to: "none"
 version: 1.0.0+1

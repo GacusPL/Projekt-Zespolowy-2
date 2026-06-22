@@ -236,7 +236,7 @@ class MessageBubble extends StatelessWidget {
         style: TextStyle(color: fg, fontSize: 14),
       );
     }
-    // Asystent — pełen Markdown z formatowaniem.
+    // Asystent - pełen Markdown z formatowaniem.
     return MarkdownBody(
       data: message.content,
       selectable: true,
